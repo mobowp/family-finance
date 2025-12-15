@@ -3,6 +3,9 @@
 ## 项目简介
 这是一个基于 **Next.js 14** + **Prisma** + **PostgreSQL** 的家庭理财管理系统，旨在提供智能记账、资产管理和数据统计功能。
 
+## 部署状态
+[![Deploy to Server](https://github.com/mobowp/family-finance-app/actions/workflows/deploy.yml/badge.svg)](https://github.com/mobowp/family-finance-app/actions/workflows/deploy.yml)
+
 ## 环境要求
 由于您的环境中未检测到 Node.js，请按照以下步骤配置开发环境：
 
