@@ -91,6 +91,36 @@ export async function updateUser(userId: string, formData: FormData) {
   revalidatePath('/users');
 }
 
+export async function updateUserEmail(userId: string, newEmail: string) {
+  const currentUser = await getCurrentUser();
+  const isAdmin = currentUser?.email === 'mobowp027@gmail.com' || (currentUser as any)?.role === 'ADMIN';
+
+  if (!isAdmin) {
+    throw new Error('只有管理员可以修改用户邮箱');
+  }
+
+  try {
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: newEmail }
+    });
+
+    if (existingUser && existingUser.id !== userId) {
+      throw new Error('该邮箱已被其他用户使用');
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { email: newEmail },
+    });
+    
+    revalidatePath('/settings');
+  } catch (error) {
+    console.error('Failed to update user email:', error);
+    throw error instanceof Error ? error : new Error('更新邮箱失败');
+  }
+}
+
 export async function switchUser(userId: string) {
   // Deprecated in favor of real auth
   // But we could implement a "sudo" mode or just ignore it

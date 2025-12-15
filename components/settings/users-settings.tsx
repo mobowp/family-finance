@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { CreateUserDialog } from "@/components/create-user-dialog";
 import { DeleteUserDialog } from "@/components/settings/delete-user-dialog";
 import { ResetPasswordDialog } from "@/components/settings/reset-password-dialog";
+import { EditUserEmailDialog } from "@/components/settings/edit-user-email-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,6 +47,7 @@ export async function UsersSettings() {
                         <div className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
                             {(user as any).role || 'USER'}
                         </div>
+                        <EditUserEmailDialog userId={user.id} currentEmail={user.email || ''} userName={user.name || 'User'} />
                         <ResetPasswordDialog userId={user.id} userName={user.name || 'User'} />
                         {user.email !== 'mobowp027@gmail.com' && (
                             <DeleteUserDialog userId={user.id} userName={user.name || 'User'} />
