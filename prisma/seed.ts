@@ -4,112 +4,140 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
+  console.log('正在清理旧数据...')
+  // Clean up database
+  await prisma.transaction.deleteMany()
+  await prisma.asset.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.category.deleteMany()
+  await prisma.user.deleteMany()
+  
+  console.log('旧数据清理完成')
+
   const hashedPassword = await bcrypt.hash('password', 10)
 
-  // Create Admin user
-  const admin = await prisma.user.upsert({
-    where: { email: 'mobowp027@gmail.com' },
-    update: {
-      role: 'ADMIN',
-    },
-    create: {
-      email: 'mobowp027@gmail.com',
-      name: 'Admin',
+  // Create Admin user - Wang Sicong
+  console.log('正在创建管理员：王思聪...')
+  const admin = await prisma.user.create({
+    data: {
+      email: 'wsc@wanda.com',
+      name: '王思聪',
       password: hashedPassword,
       role: 'ADMIN',
-      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=WangSicong&style=circle&top=shortHair&hairColor=black&facialHair=beardLight',
     },
   })
 
-  console.log({ admin })
+  console.log('管理员创建成功:', admin.name)
 
-  // Create Expense Categories (if not exist)
+  // Create Luxury Expense Categories
   const expenseCategories = [
-    { name: '餐饮', type: 'EXPENSE', icon: 'utensils' },
-    { name: '交通', type: 'EXPENSE', icon: 'bus' },
-    { name: '购物', type: 'EXPENSE', icon: 'shopping-bag' },
-    { name: '娱乐', type: 'EXPENSE', icon: 'gamepad-2' },
-    { name: '住房', type: 'EXPENSE', icon: 'home' },
-    { name: '医疗', type: 'EXPENSE', icon: 'stethoscope' },
+    { name: '私人飞机', type: 'EXPENSE', icon: 'plane' },
+    { name: '豪车维护', type: 'EXPENSE', icon: 'car' },
+    { name: '游艇派对', type: 'EXPENSE', icon: 'ship' },
+    { name: '电竞投资', type: 'EXPENSE', icon: 'gamepad-2' },
+    { name: '奢侈品', type: 'EXPENSE', icon: 'shopping-bag' },
+    { name: '高级餐饮', type: 'EXPENSE', icon: 'utensils' },
+    { name: '夜店消费', type: 'EXPENSE', icon: 'wine' },
+    { name: '宠物开销', type: 'EXPENSE', icon: 'dog' }, // For Coco
   ]
 
   for (const cat of expenseCategories) {
-    // Check if category exists to avoid duplicates if running seed multiple times
-    // Since name is not unique in schema, we might create duplicates if we just create.
-    // But for simplicity in this seed script, let's check first.
-    const existing = await prisma.category.findFirst({
-      where: { name: cat.name, type: cat.type }
-    })
-    
-    if (!existing) {
-      await prisma.category.create({
-        data: cat
-      })
-    }
+    await prisma.category.create({ data: cat })
   }
 
   // Create Income Categories
   const incomeCategories = [
-    { name: '工资', type: 'INCOME', icon: 'banknote' },
-    { name: '奖金', type: 'INCOME', icon: 'gift' },
-    { name: '理财收益', type: 'INCOME', icon: 'trending-up' },
+    { name: '家族分红', type: 'INCOME', icon: 'landmark' },
+    { name: '投资回报', type: 'INCOME', icon: 'trending-up' },
+    { name: '直播收益', type: 'INCOME', icon: 'video' },
   ]
 
   for (const cat of incomeCategories) {
-    const existing = await prisma.category.findFirst({
-      where: { name: cat.name, type: cat.type }
-    })
-    
-    if (!existing) {
-      await prisma.category.create({
-        data: cat
-      })
-    }
+    await prisma.category.create({ data: cat })
   }
 
-  // Create Sample Accounts
+  // Create Accounts with "Small Goals"
+  console.log('正在创建资金账户...')
   const accounts = [
-    { name: '现金钱包', type: 'CASH', balance: 500.00, icon: 'wallet' },
-    { name: '招商银行', type: 'BANK', balance: 15000.00, icon: 'credit-card' },
-    { name: '支付宝', type: 'ALIPAY', balance: 3500.50, icon: 'smartphone' },
+    { name: '黑卡主账户', type: 'BANK', balance: 500000000.00, icon: 'credit-card' }, // 5亿
+    { name: '零花钱', type: 'CASH', balance: 2000000.00, icon: 'wallet' }, // 200万
+    { name: '普思资本', type: 'INVESTMENT', balance: 2000000000.00, icon: 'briefcase' }, // 20亿
   ]
 
   for (const acc of accounts) {
-    const existing = await prisma.account.findFirst({
-      where: { name: acc.name, userId: admin.id }
+    await prisma.account.create({
+      data: {
+        ...acc,
+        userId: admin.id
+      }
     })
-
-    if (!existing) {
-      await prisma.account.create({
-        data: {
-          ...acc,
-          userId: admin.id
-        }
-      })
-    }
   }
 
-  // Create Sample Assets
+  // Create Luxury Assets
+  console.log('正在创建资产...')
   const assets = [
-    { name: '贵州茅台', type: 'CN_STOCK', symbol: '600519', quantity: 100, costPrice: 1600.00, marketPrice: 1750.00 },
-    { name: '腾讯控股', type: 'HK_STOCK', symbol: '00700', quantity: 200, costPrice: 300.00, marketPrice: 320.00 },
-    { name: '黄金ETF', type: 'FUND', symbol: '518880', quantity: 1000, costPrice: 4.50, marketPrice: 4.80 },
+    { name: '万达电影', type: 'CN_STOCK', symbol: '002739', quantity: 1000000, costPrice: 12.50, marketPrice: 13.80 },
+    { name: 'IG电子竞技俱乐部', type: 'OTHER', symbol: 'IG', quantity: 1, costPrice: 50000000.00, marketPrice: 500000000.00 },
+    { name: '湾流G550私人飞机', type: 'OTHER', symbol: 'JET', quantity: 1, costPrice: 300000000.00, marketPrice: 280000000.00 },
+    { name: '劳斯莱斯幻影', type: 'OTHER', symbol: 'RR', quantity: 1, costPrice: 12000000.00, marketPrice: 10000000.00 },
+    { name: '上海半岛酒店公寓', type: 'REAL_ESTATE', symbol: 'SH-APT', quantity: 1, costPrice: 80000000.00, marketPrice: 120000000.00 },
   ]
 
   for (const asset of assets) {
-    const existing = await prisma.asset.findFirst({
-      where: { name: asset.name, userId: admin.id }
+    await prisma.asset.create({
+      data: {
+        ...asset,
+        userId: admin.id
+      }
     })
+  }
 
-    if (!existing) {
-      await prisma.asset.create({
-        data: {
-          ...asset,
+  // Create some sample transactions
+  console.log('正在生成近期消费记录...')
+  const categories = await prisma.category.findMany()
+  const userAccounts = await prisma.account.findMany({ where: { userId: admin.id } })
+  
+  const partyCategory = categories.find(c => c.name === '游艇派对')
+  const carCategory = categories.find(c => c.name === '豪车维护')
+  const petCategory = categories.find(c => c.name === '宠物开销')
+  const blackCard = userAccounts.find(a => a.name === '黑卡主账户')
+
+  if (blackCard && partyCategory && carCategory && petCategory) {
+    await prisma.transaction.createMany({
+      data: [
+        {
+          amount: 2000000,
+          type: 'EXPENSE',
+          date: new Date(),
+          description: '三亚生日派对包场',
+          categoryId: partyCategory.id,
+          accountId: blackCard.id,
+          userId: admin.id
+        },
+        {
+          amount: 500000,
+          type: 'EXPENSE',
+          date: new Date(Date.now() - 86400000 * 2), // 2 days ago
+          description: '法拉利保养',
+          categoryId: carCategory.id,
+          accountId: blackCard.id,
+          userId: admin.id
+        },
+        {
+          amount: 20000,
+          type: 'EXPENSE',
+          date: new Date(Date.now() - 86400000 * 5), // 5 days ago
+          description: '给王可可买进口狗粮',
+          categoryId: petCategory.id,
+          accountId: blackCard.id,
           userId: admin.id
         }
-      })
-    }
+      ]
+    })
   }
+
+  console.log('数据生成完成！')
 }
 
 main()
