@@ -18,7 +18,7 @@ jobs:
           port: 22
           script: |
             # 1. 进入项目目录
-            cd /root/family-finance-app
+            cd /root/family-finance
             
             # 2. 拉取最新代码
             git pull origin main
