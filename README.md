@@ -1,6 +1,8 @@
 # 家庭理财管理系统 (Family Finance System)
 
 ### 数据都为测试数据，部署后请删除所有测试数据。
+### 数据都为测试数据，部署后请删除所有测试数据。
+### 数据都为测试数据，部署后请删除所有测试数据。
 
 ## 项目简介
 这是一个基于 **Next.js 14** + **Prisma** + **PostgreSQL** 的家庭理财管理系统，旨在提供智能记账、资产管理和数据统计功能。
@@ -9,7 +11,6 @@
 [![Deploy to Server](https://github.com/mobowp/family-finance-app/actions/workflows/deploy.yml/badge.svg)](https://github.com/mobowp/family-finance-app/actions/workflows/deploy.yml)
 
 ## 环境要求
-由于您的环境中未检测到 Node.js，请按照以下步骤配置开发环境：
 
 1. **安装 Node.js** (v18.17 或更高版本)
    - 访问 [Node.js 官网](https://nodejs.org/) 下载并安装 LTS 版本。
