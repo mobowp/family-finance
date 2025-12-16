@@ -10,7 +10,14 @@ import { getSystemSettings, updateSystemSetting } from "@/app/actions/system-set
 import { testNowApiConnection, testAiConnection, getAiModels } from "@/app/actions/ai";
 import { refreshDailyLoveQuote } from "@/app/actions/love-quote";
 import { toast } from "sonner";
-import { Loader2, Save, Bot, Database, CheckCircle2, XCircle, RefreshCw, MessageSquarePlus, Trash2, Plus, Heart } from "lucide-react";
+import { Loader2, Save, Bot, Database, CheckCircle2, XCircle, RefreshCw, MessageSquarePlus, Trash2, Plus, Heart, Wallet, Activity, Utensils } from "lucide-react";
+
+const QUOTE_TEMPLATES = [
+  { id: 'love_quote', name: '每日情话', icon: Heart },
+  { id: 'financial_status', name: '财务状况', icon: Wallet },
+  { id: 'spending_diagnosis', name: '消费诊断', icon: Activity },
+  { id: 'what_to_eat', name: '今天吃什么', icon: Utensils },
+];
 
 export function ApiSettings() {
   const [loading, setLoading] = useState(true);
@@ -30,6 +37,10 @@ export function ApiSettings() {
     ai_quick_questions: [] as string[],
     love_start_date: '',
     love_quote_prompt: '',
+    active_quote_template: 'love_quote',
+    template_prompt_financial_status: '',
+    template_prompt_spending_diagnosis: '',
+    template_prompt_what_to_eat: '',
   });
 
   const [newQuestion, setNewQuestion] = useState("");
@@ -73,6 +84,10 @@ export function ApiSettings() {
         ai_quick_questions: quickQuestions,
         love_start_date: data.love_start_date || '',
         love_quote_prompt: data.love_quote_prompt || '',
+        active_quote_template: data.active_quote_template || 'love_quote',
+        template_prompt_financial_status: data.template_prompt_financial_status || '',
+        template_prompt_spending_diagnosis: data.template_prompt_spending_diagnosis || '',
+        template_prompt_what_to_eat: data.template_prompt_what_to_eat || '',
       });
     } catch (error) {
       toast.error("加载设置失败");
@@ -117,6 +132,10 @@ export function ApiSettings() {
       await updateSystemSetting('ai_quick_questions', JSON.stringify(settings.ai_quick_questions));
       await updateSystemSetting('love_start_date', settings.love_start_date);
       await updateSystemSetting('love_quote_prompt', settings.love_quote_prompt);
+      await updateSystemSetting('active_quote_template', settings.active_quote_template);
+      await updateSystemSetting('template_prompt_financial_status', settings.template_prompt_financial_status);
+      await updateSystemSetting('template_prompt_spending_diagnosis', settings.template_prompt_spending_diagnosis);
+      await updateSystemSetting('template_prompt_what_to_eat', settings.template_prompt_what_to_eat);
       toast.success("设置已保存");
     } catch (error) {
       toast.error("保存设置失败");
@@ -133,9 +152,9 @@ export function ApiSettings() {
       await handleSave();
       
       // 生成情话
-      const quote = await refreshDailyLoveQuote();
-      if (quote) {
-        toast.success("情话已重新生成");
+      const result = await refreshDailyLoveQuote();
+      if (result && result.content) {
+        toast.success("内容已重新生成");
       }
     } catch (error) {
       console.error(error);
@@ -215,48 +234,132 @@ export function ApiSettings() {
     );
   }
 
-  return (
-    <div className="space-y-8">
-      {/* 情侣设置 */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-          <Heart className="w-5 h-5 text-pink-500" />
-          <h3 className="font-medium text-slate-900 dark:text-slate-100">情侣设置</h3>
-        </div>
-        <div className="grid gap-4 pl-1">
+  const renderPromptEditor = () => {
+    switch (settings.active_quote_template) {
+      case 'love_quote':
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="love_start_date">相爱起始日期</Label>
+              <Input
+                id="love_start_date"
+                type="date"
+                value={settings.love_start_date}
+                onChange={(e) => setSettings({ ...settings, love_start_date: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">设置后将在首页显示相爱天数</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="love_quote_prompt">情话生成提示词 (Prompt)</Label>
+              <Textarea
+                id="love_quote_prompt"
+                value={settings.love_quote_prompt}
+                onChange={(e) => setSettings({ ...settings, love_quote_prompt: e.target.value })}
+                placeholder="请输入生成情话的 Prompt，可以使用 ${daysLoved} 作为相爱天数的占位符..."
+                rows={5}
+              />
+              <p className="text-xs text-muted-foreground">
+                可用变量：<code>{"${daysLoved}"}</code> (相爱天数)
+              </p>
+            </div>
+          </>
+        );
+      case 'financial_status':
+        return (
           <div className="space-y-2">
-            <Label htmlFor="love_start_date">相爱起始日期</Label>
-            <Input
-              id="love_start_date"
-              type="date"
-              value={settings.love_start_date}
-              onChange={(e) => setSettings({ ...settings, love_start_date: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground">设置后将在首页显示相爱天数</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="love_quote_prompt">情话生成提示词 (Prompt)</Label>
+            <Label htmlFor="template_prompt_financial_status">财务状况提示词 (Prompt)</Label>
             <Textarea
-              id="love_quote_prompt"
-              value={settings.love_quote_prompt}
-              onChange={(e) => setSettings({ ...settings, love_quote_prompt: e.target.value })}
-              placeholder="请输入生成情话的 Prompt，可以使用 ${daysLoved} 作为相爱天数的占位符..."
+              id="template_prompt_financial_status"
+              value={settings.template_prompt_financial_status}
+              onChange={(e) => setSettings({ ...settings, template_prompt_financial_status: e.target.value })}
+              placeholder="请输入生成财务状况的 Prompt..."
               rows={5}
             />
             <p className="text-xs text-muted-foreground">
-              自定义 AI 生成情话的提示词。请保留 <code>{"${daysLoved}"}</code> 以显示相爱天数。
+              可用变量：<code>{"${todayIncome}"}</code>, <code>{"${todayExpense}"}</code>, <code>{"${monthIncome}"}</code>, <code>{"${monthExpense}"}</code>, <code>{"${totalBalance}"}</code>
             </p>
-            <div className="pt-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleGenerateQuote}
-                disabled={generatingQuote}
-              >
-                {generatingQuote ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-                保存并重新生成情话
-              </Button>
-            </div>
+          </div>
+        );
+      case 'spending_diagnosis':
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="template_prompt_spending_diagnosis">消费诊断提示词 (Prompt)</Label>
+            <Textarea
+              id="template_prompt_spending_diagnosis"
+              value={settings.template_prompt_spending_diagnosis}
+              onChange={(e) => setSettings({ ...settings, template_prompt_spending_diagnosis: e.target.value })}
+              placeholder="请输入生成消费诊断的 Prompt..."
+              rows={5}
+            />
+            <p className="text-xs text-muted-foreground">
+              可用变量：<code>{"${todayExpense}"}</code>, <code>{"${monthExpense}"}</code>
+            </p>
+          </div>
+        );
+      case 'what_to_eat':
+        return (
+          <div className="space-y-2">
+            <Label htmlFor="template_prompt_what_to_eat">今天吃什么提示词 (Prompt)</Label>
+            <Textarea
+              id="template_prompt_what_to_eat"
+              value={settings.template_prompt_what_to_eat}
+              onChange={(e) => setSettings({ ...settings, template_prompt_what_to_eat: e.target.value })}
+              placeholder="请输入生成菜单推荐的 Prompt..."
+              rows={5}
+            />
+            <p className="text-xs text-muted-foreground">
+              可用变量：<code>{"${weekday}"}</code> (星期几)
+            </p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* 首页寄语设置 */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+          <Heart className="w-5 h-5 text-pink-500" />
+          <h3 className="font-medium text-slate-900 dark:text-slate-100">首页寄语设置</h3>
+        </div>
+        <div className="grid gap-4 pl-1">
+          <div className="space-y-2">
+            <Label htmlFor="active_quote_template">展示模板</Label>
+            <Select 
+              value={settings.active_quote_template} 
+              onValueChange={(value) => setSettings({ ...settings, active_quote_template: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="选择展示模板" />
+              </SelectTrigger>
+              <SelectContent>
+                {QUOTE_TEMPLATES.map(template => (
+                  <SelectItem key={template.id} value={template.id}>
+                    <div className="flex items-center gap-2">
+                      <template.icon className="w-4 h-4" />
+                      {template.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {renderPromptEditor()}
+
+          <div className="pt-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleGenerateQuote}
+              disabled={generatingQuote}
+            >
+              {generatingQuote ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+              保存并重新生成内容
+            </Button>
           </div>
         </div>
       </div>
