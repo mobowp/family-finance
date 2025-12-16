@@ -50,9 +50,11 @@ export async function getDailyLoveQuote() {
   }
 
   try {
+    console.log("Generating love quote with prompt:", prompt);
     const response = await chatWithAI([
       { role: 'user', content: prompt }
     ]);
+    console.log("AI Response:", response);
 
     if (response.content) {
       // 3. 保存到数据库
@@ -64,6 +66,7 @@ export async function getDailyLoveQuote() {
       });
       return response.content;
     } else {
+      console.error("AI returned no content:", response);
       return "今天的情话正在酝酿中...\n爱你的每一天。";
     }
   } catch (error) {
@@ -74,6 +77,7 @@ export async function getDailyLoveQuote() {
 
 export async function refreshDailyLoveQuote() {
   const today = new Date().toISOString().split('T')[0];
+  console.log("Refreshing daily love quote for:", today);
   
   // 删除今日已有的情话
   try {
@@ -82,6 +86,7 @@ export async function refreshDailyLoveQuote() {
     });
   } catch (e) {
     // 忽略删除错误（如果不存在）
+    console.log("No existing quote to delete or delete failed:", e);
   }
 
   // 重新生成

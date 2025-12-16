@@ -27,6 +27,24 @@ export function AiChatWidget() {
     if (isOpen) {
       loadQuickQuestions();
     }
+    
+    // 处理移动端滚动穿透问题
+    const handleResize = () => {
+      if (isOpen && window.innerWidth < 768) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'unset';
+      }
+    };
+
+    // 初始化检查
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
   async function loadQuickQuestions() {
