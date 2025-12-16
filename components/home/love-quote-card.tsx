@@ -102,7 +102,7 @@ export function LoveQuoteCard() {
       <CardContent className="relative z-10">
         <div className="space-y-4">
           <div className="min-h-[60px] flex items-center">
-            <p className="text-lg font-serif italic text-slate-700 dark:text-slate-200 leading-relaxed">
+            <p className="text-base tracking-wide text-justify text-slate-700 dark:text-slate-200 leading-relaxed">
               "{quote || "陪伴是最长情的告白。"}"
             </p>
           </div>
