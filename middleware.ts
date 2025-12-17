@@ -1,5 +1,4 @@
-import NextAuth from 'next-auth';
-import { authConfig } from './auth.config';
+import { auth } from './auth';
  
 export const config = {
   matcher: [
@@ -7,4 +6,4 @@ export const config = {
   ],
 };
 
-export default NextAuth(authConfig).auth;
+export default auth;

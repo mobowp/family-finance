@@ -21,29 +21,12 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig.callbacks,
     async session({ session, token }) {
       if (session.user && token.sub) {
-        try {
-          const user = await prisma.user.findUnique({ 
-            where: { id: token.sub } 
-          });
-
-          if (!user) {
-            console.error('User not found in database, session invalid');
-            session.user = {} as any;
-            return session;
-          }
-
-          session.user.id = token.sub;
-          session.user.name = user.name;
-          session.user.email = user.email;
-          session.user.image = user.image;
-          (session.user as any).role = user.role;
-          (session.user as any).familyId = user.familyId;
-        } catch (error) {
-          console.error('Session callback error:', error);
-          if (token.sub) {
-            session.user.id = token.sub;
-          }
-        }
+        session.user.id = token.sub;
+        if (token.name) session.user.name = token.name as string;
+        if (token.email) session.user.email = token.email as string;
+        if (token.picture) session.user.image = token.picture as string;
+        (session.user as any).role = token.role;
+        (session.user as any).familyId = token.familyId;
       }
       return session;
     },
@@ -51,21 +34,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       if (trigger === 'signIn' || trigger === 'signUp') {
         if (user) {
           token.sub = user.id;
-        }
-      }
-      
-      if (token.sub) {
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: token.sub }
-          });
-          
-          if (!dbUser) {
-            console.error('User not found in JWT callback, invalidating token');
-            return {};
-          }
-        } catch (error) {
-          console.error('JWT callback error:', error);
+          token.role = (user as any).role;
+          token.familyId = (user as any).familyId;
         }
       }
       

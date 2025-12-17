@@ -10,9 +10,6 @@ export default function LoginPage() {
         <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] rounded-full bg-cyan-400/20 blur-[80px] animate-pulse delay-700" />
       </div>
 
-      {/* Grid Pattern */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-
       <div className="relative w-full max-w-md z-10">
         <LoginForm />
         

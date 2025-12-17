@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import { register } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ function RegisterButton() {
 }
 
 export function RegisterForm() {
-  const [errorMessage, dispatch] = useFormState(register, undefined);
+  const [errorMessage, dispatch] = useActionState(register, undefined);
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get('invite');
 

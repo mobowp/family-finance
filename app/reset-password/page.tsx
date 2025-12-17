@@ -55,7 +55,7 @@ function ResetPasswordForm() {
       if (response.ok) {
         setSuccess(true);
         setTimeout(() => {
-          router.push('/login');
+          window.location.href = '/login';
         }, 2000);
       } else {
         setError(data.error || '重置密码失败');

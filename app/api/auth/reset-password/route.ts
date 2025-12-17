@@ -57,10 +57,15 @@ export async function POST(request: NextRequest) {
       data: { used: true },
     });
 
-    return NextResponse.json(
-      { message: '密码重置成功' },
+    const response = NextResponse.json(
+      { message: '密码重置成功，请重新登录' },
       { status: 200 }
     );
+    
+    response.cookies.delete('authjs.session-token');
+    response.cookies.delete('__Secure-authjs.session-token');
+    
+    return response;
   } catch (error) {
     console.error('Reset password error:', error);
     return NextResponse.json(

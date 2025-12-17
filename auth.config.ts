@@ -15,18 +15,10 @@ export const authConfig = {
                          nextUrl.pathname.startsWith('/reset-password');
       
       if (isAuthRoute) {
-        if (isLoggedIn && !nextUrl.pathname.startsWith('/forgot-password') && !nextUrl.pathname.startsWith('/reset-password')) {
-          return Response.redirect(new URL('/', nextUrl));
-        }
         return true;
       }
       
-      // If not logged in and not on auth route, redirect to login
-      if (!isLoggedIn) {
-        return false; // Redirects to login page
-      }
-      
-      return true;
+      return isLoggedIn;
     },
     session({ session, token }) {
       if (session.user && token.sub) {
