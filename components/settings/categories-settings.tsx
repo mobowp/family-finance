@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { CreateCategoryDialog } from "@/components/create-category-dialog";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { deleteCategory } from "@/app/actions/category";
-import { Trash2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DeleteCategoryButton } from "./delete-category-button";
 
 export async function CategoriesSettings() {
   const categories = await prisma.category.findMany({
@@ -33,14 +32,14 @@ export async function CategoriesSettings() {
             ) : (
                 <div className="flex flex-wrap gap-2">
                 {expenseCategories.map(category => (
-                    <form key={category.id} action={deleteCategory.bind(null, category.id)}>
-                        <div className="flex items-center gap-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-3 py-1.5 rounded-full border border-red-200 dark:border-red-900">
-                            <span className="text-sm font-medium">{category.name}</span>
-                            <button className="text-red-400 hover:text-red-600 ml-1">
-                                <Trash2 className="h-3 w-3" />
-                            </button>
-                        </div>
-                    </form>
+                    <div key={category.id} className="flex items-center gap-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-3 py-1.5 rounded-full border border-red-200 dark:border-red-900">
+                        <span className="text-sm font-medium">{category.name}</span>
+                        <DeleteCategoryButton 
+                            id={category.id} 
+                            name={category.name} 
+                            colorClass="text-red-400 hover:text-red-600"
+                        />
+                    </div>
                 ))}
                 </div>
             )}
@@ -57,14 +56,14 @@ export async function CategoriesSettings() {
             ) : (
                 <div className="flex flex-wrap gap-2">
                 {incomeCategories.map(category => (
-                    <form key={category.id} action={deleteCategory.bind(null, category.id)}>
-                         <div className="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-3 py-1.5 rounded-full border border-green-200 dark:border-green-900">
-                            <span className="text-sm font-medium">{category.name}</span>
-                            <button className="text-green-400 hover:text-green-600 ml-1">
-                                <Trash2 className="h-3 w-3" />
-                            </button>
-                        </div>
-                    </form>
+                    <div key={category.id} className="flex items-center gap-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-3 py-1.5 rounded-full border border-green-200 dark:border-green-900">
+                        <span className="text-sm font-medium">{category.name}</span>
+                        <DeleteCategoryButton 
+                            id={category.id} 
+                            name={category.name} 
+                            colorClass="text-green-400 hover:text-green-600"
+                        />
+                    </div>
                 ))}
                 </div>
             )}

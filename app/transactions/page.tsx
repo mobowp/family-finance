@@ -90,7 +90,11 @@ export default async function TransactionsPage({
   }
 
   if (categoryId && typeof categoryId === 'string') {
-    where.categoryId = categoryId;
+    if (categoryId === 'uncategorized') {
+      where.categoryId = null;
+    } else {
+      where.categoryId = categoryId;
+    }
   }
 
   if (accountId && typeof accountId === 'string') {

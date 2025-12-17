@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
 import { createTransaction } from "@/app/actions/transaction";
+import { getFrequentCategoriesAndAccounts } from "@/app/actions/frequent-data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TransactionForm } from "@/components/transaction-form";
 import { auth } from "@/auth";
@@ -17,10 +17,8 @@ export default async function CreateTransactionPage() {
   console.log(`Fetching data for user: ${userId}`);
 
   try {
-    const [categories, accounts] = await Promise.all([
-      prisma.category.findMany(), // Categories might be shared or system-wide? Let's assume system-wide for now or check schema
-      prisma.account.findMany({ where: { userId } })
-    ]);
+    // 使用新的 Server Action 获取排序后的数据
+    const { categories, accounts } = await getFrequentCategoriesAndAccounts();
 
     console.log(`Found ${categories.length} categories and ${accounts.length} accounts`);
 
