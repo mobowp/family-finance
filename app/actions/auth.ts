@@ -23,14 +23,9 @@ export async function authenticate(
       password: formData.get('password'),
       redirectTo: '/',
     });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return '邮箱或密码错误';
-        default:
-          return '发生了一些错误';
-      }
+  } catch (error: any) {
+    if (error?.type === 'CredentialsSignin') {
+      return '邮箱或密码错误';
     }
     throw error;
   }
@@ -103,21 +98,9 @@ export async function register(
   }
 
   // Attempt to sign in after registration
-  try {
-    await signIn('credentials', {
-      email: formData.get('email'),
-      password: formData.get('password'),
-      redirectTo: '/',
-    });
-  } catch (error) {
-    if (error instanceof AuthError) {
-        switch (error.type) {
-          case 'CredentialsSignin':
-            return '邮箱或密码错误';
-          default:
-            return '发生了一些错误';
-        }
-      }
-      throw error;
-  }
+  await signIn('credentials', {
+    email: formData.get('email'),
+    password: formData.get('password'),
+    redirectTo: '/',
+  });
 }
