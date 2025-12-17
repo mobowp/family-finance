@@ -10,12 +10,20 @@ export default async function CreateAccountPage({
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
   const user = await getCurrentUser();
+  
+  if (!user) {
+    return <div>请先登录</div>;
+  }
+
+  const familyId = (user as any).familyId || user.id;
   const accounts = await prisma.account.findMany({
     where: { 
       parentId: null,
       user: {
-        // @ts-ignore
-        familyId: user?.familyId || user?.id
+        OR: [
+          { id: user.id },
+          { familyId: familyId }
+        ]
       }
     } 
   });

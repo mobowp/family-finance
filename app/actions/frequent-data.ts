@@ -7,6 +7,7 @@ export async function getFrequentCategoriesAndAccounts() {
   const user = await getCurrentUser();
   if (!user) return { categories: [], accounts: [] };
 
+  const familyId = (user as any).familyId || user.id;
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -42,8 +43,10 @@ export async function getFrequentCategoriesAndAccounts() {
     prisma.account.findMany({
       where: {
         user: {
-          // @ts-ignore
-          familyId: user.familyId || user.id
+          OR: [
+            { id: user.id },
+            { familyId: familyId }
+          ]
         }
       },
       include: { children: true }

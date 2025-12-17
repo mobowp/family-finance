@@ -27,6 +27,7 @@ interface TransactionListProps {
   pageSize: number;
   totalPages: number;
   totalCount: number;
+  isVisible: boolean;
 }
 
 export function TransactionList({ 
@@ -34,7 +35,8 @@ export function TransactionList({
   page, 
   pageSize, 
   totalPages, 
-  totalCount 
+  totalCount,
+  isVisible
 }: TransactionListProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -138,7 +140,7 @@ export function TransactionList({
                       </span>
                     </td>
                     <td className="p-6 text-muted-foreground max-w-[300px] truncate">
-                      {tx.description || '-'}
+                      {isVisible ? (tx.description || '-') : '******'}
                     </td>
                     <td className="p-6">
                       <div className="flex items-center gap-2">
@@ -157,8 +159,12 @@ export function TransactionList({
                       <div className={`flex items-center justify-end gap-1 ${tx.type === 'EXPENSE' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                         {tx.type === 'EXPENSE' ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                         <span className="text-base">
-                          {tx.type === 'EXPENSE' ? '-' : '+'}
-                          {tx.amount.toFixed(2)}
+                          {isVisible ? (
+                            <>
+                              {tx.type === 'EXPENSE' ? '-' : '+'}
+                              {tx.amount.toFixed(2)}
+                            </>
+                          ) : '******'}
                         </span>
                       </div>
                     </td>

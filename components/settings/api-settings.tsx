@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,8 @@ import { getSystemSettings, updateSystemSetting } from "@/app/actions/system-set
 import { testNowApiConnection, testAiConnection, getAiModels } from "@/app/actions/ai";
 import { refreshDailyLoveQuote } from "@/app/actions/love-quote";
 import { toast } from "sonner";
-import { Loader2, Save, Bot, Database, CheckCircle2, XCircle, RefreshCw, MessageSquarePlus, Trash2, Plus, Heart, Wallet, Activity, Utensils } from "lucide-react";
+import { Loader2, Save, Bot, Database, CheckCircle2, XCircle, RefreshCw, MessageSquarePlus, Trash2, Plus, Heart, Wallet, Activity, Utensils, Upload } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const QUOTE_TEMPLATES = [
   { id: 'love_quote', name: '每日情话', icon: Heart },
@@ -27,6 +28,8 @@ export function ApiSettings() {
   const [testingAi, setTestingAi] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
   const [availableModels, setAvailableModels] = useState<{id: string, name: string}[]>([]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   
   const [settings, setSettings] = useState({
     k780_appkey: '',
@@ -35,6 +38,7 @@ export function ApiSettings() {
     ai_api_key: '',
     ai_model: 'deepseek-chat',
     ai_quick_questions: [] as string[],
+    ai_avatar: '',
     love_start_date: '',
     love_quote_prompt: '',
     active_quote_template: 'love_quote',
@@ -44,6 +48,7 @@ export function ApiSettings() {
   });
 
   const [newQuestion, setNewQuestion] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadSettings();
@@ -82,6 +87,7 @@ export function ApiSettings() {
         ai_api_key: data.ai_api_key || '',
         ai_model: data.ai_model || 'deepseek-chat',
         ai_quick_questions: quickQuestions,
+        ai_avatar: data.ai_avatar || '',
         love_start_date: data.love_start_date || '',
         love_quote_prompt: data.love_quote_prompt || '',
         active_quote_template: data.active_quote_template || 'love_quote',
@@ -130,6 +136,7 @@ export function ApiSettings() {
       await updateSystemSetting('ai_api_key', settings.ai_api_key);
       await updateSystemSetting('ai_model', settings.ai_model);
       await updateSystemSetting('ai_quick_questions', JSON.stringify(settings.ai_quick_questions));
+      await updateSystemSetting('ai_avatar', settings.ai_avatar);
       await updateSystemSetting('love_start_date', settings.love_start_date);
       await updateSystemSetting('love_quote_prompt', settings.love_quote_prompt);
       await updateSystemSetting('active_quote_template', settings.active_quote_template);
@@ -143,6 +150,56 @@ export function ApiSettings() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("图片大小不能超过 5MB");
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("请上传图片文件");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width = img.width;
+        let height = img.height;
+        const maxSize = 200;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        setSettings(prev => ({ ...prev, ai_avatar: compressedBase64 }));
+        toast.success("头像已上传");
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleGenerateQuote() {
@@ -224,6 +281,46 @@ export function ApiSettings() {
       ...prev,
       ai_quick_questions: prev.ai_quick_questions.filter((_, i) => i !== index)
     }));
+  }
+
+  function handleDragStart(e: React.DragEvent, index: number) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+    setDraggedIndex(index);
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  }
+
+  function handleDragLeave() {
+    setDragOverIndex(null);
+  }
+
+  function handleDrop(e: React.DragEvent, dropIndex: number) {
+    e.preventDefault();
+    const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    
+    if (dragIndex === dropIndex) return;
+
+    const newQuestions = [...settings.ai_quick_questions];
+    const [draggedItem] = newQuestions.splice(dragIndex, 1);
+    newQuestions.splice(dropIndex, 0, draggedItem);
+
+    setSettings(prev => ({
+      ...prev,
+      ai_quick_questions: newQuestions
+    }));
+  }
+
+  function handleDragEnd() {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   }
 
   if (loading) {
@@ -423,6 +520,40 @@ export function ApiSettings() {
         </div>
         <div className="grid gap-4 pl-1">
           <div className="space-y-2">
+            <Label>AI 助手头像</Label>
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16 border-2 border-primary">
+                <AvatarImage src={settings.ai_avatar || undefined} />
+                <AvatarFallback>
+                  <Bot className="h-8 w-8" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="gap-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  上传头像
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  图片将自动压缩至 200x200
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="ai_provider">服务提供商</Label>
             <Select 
               value={settings.ai_provider} 
@@ -514,8 +645,23 @@ export function ApiSettings() {
               
               <div className="flex flex-wrap gap-2 mt-3">
                 {settings.ai_quick_questions.map((q, index) => (
-                  <div key={index} className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full text-sm">
-                    <span>{q}</span>
+                  <div 
+                    key={index} 
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm cursor-move transition-all duration-200 ${
+                      draggedIndex === index 
+                        ? 'opacity-40 scale-95 bg-slate-200 dark:bg-slate-700' 
+                        : dragOverIndex === index
+                        ? 'bg-blue-100 dark:bg-blue-900 ring-2 ring-blue-400 dark:ring-blue-600 scale-105'
+                        : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <span className="select-none">{q}</span>
                     <button 
                       onClick={() => handleDeleteQuestion(index)}
                       className="text-slate-400 hover:text-red-500 transition-colors ml-1"
@@ -528,6 +674,11 @@ export function ApiSettings() {
                   <p className="text-sm text-muted-foreground italic">暂无快捷问题</p>
                 )}
               </div>
+              {settings.ai_quick_questions.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  💡 提示：拖拽问题可以调整顺序
+                </p>
+              )}
             </div>
           </div>
         </div>

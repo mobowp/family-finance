@@ -154,7 +154,7 @@ export function HomeDashboard({
                             {tx.type === 'INCOME' ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
                           </div>
                           <div>
-                            <p className="font-medium">{tx.description || tx.category?.name || '无描述'}</p>
+                            <p className="font-medium">{isVisible ? (tx.description || tx.category?.name || '无描述') : '******'}</p>
                             <p className="text-sm text-muted-foreground">
                               {format(new Date(tx.date), 'MM-dd HH:mm:ss')} · {tx.account.name}
                             </p>

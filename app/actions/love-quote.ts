@@ -183,6 +183,20 @@ export async function getDailyLoveQuote(): Promise<QuoteResult> {
     prompt = "请生成一段温暖的每日寄语。";
   }
 
+  const apiKey = await getSystemSettingInternal('ai_api_key', familyId);
+  
+  if (!apiKey) {
+    const defaultContent = activeTemplate === 'love_quote' 
+      ? `今天也要开心哦！\n爱你的第${daysLoved}天。`
+      : "今天的内容正在酝酿中...\n请先在设置中配置 AI API Key。";
+    
+    return {
+      content: defaultContent,
+      type: activeTemplate,
+      daysLoved: activeTemplate === 'love_quote' ? daysLoved : null
+    };
+  }
+
   try {
     console.log(`Generating quote for template ${activeTemplate} with prompt:`, prompt);
     const response = await chatWithAI([
@@ -191,7 +205,6 @@ export async function getDailyLoveQuote(): Promise<QuoteResult> {
     console.log("AI Response:", response);
 
     if (response.content) {
-      // 3. 保存到数据库
       await prisma.dailyLoveQuote.create({
         data: {
           date: today,

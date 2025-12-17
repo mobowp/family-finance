@@ -7,29 +7,48 @@ export default async function Home() {
   const session = await auth();
   const user = session?.user;
 
-  // 1. Fetch Data
+  if (!user?.email) {
+    redirect('/login');
+  }
+
+  const userRecord = await prisma.user.findUnique({
+    where: { email: user.email }
+  });
+
+  if (!userRecord) {
+    redirect('/login');
+  }
+
+  const familyId = userRecord.familyId || userRecord.id;
+
   const [accounts, assets, transactions] = await Promise.all([
     prisma.account.findMany({ 
       where: { 
         user: {
-          // @ts-ignore
-          familyId: user.familyId || user.id
+          OR: [
+            { id: userRecord.id },
+            { familyId: familyId }
+          ]
         }
       } 
     }),
     prisma.asset.findMany({ 
       where: { 
         user: {
-          // @ts-ignore
-          familyId: user.familyId || user.id
+          OR: [
+            { id: userRecord.id },
+            { familyId: familyId }
+          ]
         }
       } 
     }),
     prisma.transaction.findMany({
       where: { 
         user: {
-          // @ts-ignore
-          familyId: user.familyId || user.id
+          OR: [
+            { id: userRecord.id },
+            { familyId: familyId }
+          ]
         }
       },
       orderBy: [{ date: 'desc' }, { id: 'desc' }],
@@ -64,8 +83,10 @@ export default async function Home() {
   const monthlyTransactions = await prisma.transaction.findMany({
     where: {
       user: {
-        // @ts-ignore
-        familyId: user.familyId || user.id
+        OR: [
+          { id: userRecord.id },
+          { familyId: familyId }
+        ]
       },
       date: {
         gte: startOfMonth,

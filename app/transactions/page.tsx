@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Plus, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Download, Upload, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TransactionFilters } from "@/components/transaction-filters";
@@ -11,7 +11,14 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { StatisticsDashboard } from "@/components/statistics/statistics-dashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExportButton } from "@/components/export-button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ExportMenuItem } from "@/components/export-menu-item";
+import { TransactionPageWrapper } from "@/components/transaction-page-wrapper";
 
 export default async function TransactionsPage({
   searchParams,
@@ -30,6 +37,14 @@ export default async function TransactionsPage({
   if (!user) {
     redirect("/login");
   }
+
+  const familyId = user.familyId || user.id;
+  const userFilter = {
+    OR: [
+      { id: user.id },
+      { familyId: familyId }
+    ]
+  };
 
   const { search, type, categoryId, accountId, startDate, endDate, view } = searchParams;
   
@@ -51,10 +66,7 @@ export default async function TransactionsPage({
       by: ['type'],
       where: {
         date: { gte: currentMonthStart, lte: currentMonthEnd },
-        user: { 
-          // @ts-ignore
-          familyId: user.familyId || user.id 
-        }
+        user: userFilter
       },
       _sum: { amount: true },
     }),
@@ -62,10 +74,7 @@ export default async function TransactionsPage({
       by: ['type'],
       where: {
         date: { gte: lastMonthStart, lte: lastMonthEnd },
-        user: { 
-          // @ts-ignore
-          familyId: user.familyId || user.id 
-        }
+        user: userFilter
       },
       _sum: { amount: true },
     }),
@@ -158,10 +167,7 @@ export default async function TransactionsPage({
   const statsTransactions = await prisma.transaction.findMany({
     where: {
       date: { gte: oneYearAgo },
-      user: { 
-        // @ts-ignore
-        familyId: user.familyId || user.id 
-      }
+      user: userFilter
     },
     include: {
       category: true,
@@ -231,7 +237,24 @@ export default async function TransactionsPage({
           <p className="text-muted-foreground mt-1">查看及管理您的所有收支明细</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-          <ExportButton />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2 shadow-sm w-full md:w-auto">
+                <FileDown className="h-4 w-4" /> 数据管理
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/transactions/import" className="cursor-pointer flex items-center">
+                  <Upload className="h-4 w-4 mr-2" />
+                  导入数据
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                 <ExportMenuItem />
+               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link href="/transactions/create">
             <Button className="gap-2 shadow-md w-full md:w-auto">
               <Plus className="h-4 w-4" /> 记一笔
@@ -247,56 +270,19 @@ export default async function TransactionsPage({
         </TabsList>
 
         <TabsContent value="list" className="space-y-8">
-          {/* Statistics Cards */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/10 border-red-200 dark:border-red-900/50">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm font-medium text-red-600 dark:text-red-400">本月支出</p>
-                    <h3 className="text-2xl font-bold mt-2 text-red-700 dark:text-red-300">
-                      ¥ {currentExpense.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-                    </h3>
-                  </div>
-                  <div className={`flex items-center text-sm font-medium ${expenseGrowth > 0 ? 'text-red-600' : 'text-green-600'} bg-white/50 dark:bg-black/20 px-2 py-1 rounded-full`}>
-                    {expenseGrowth > 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
-                    {Math.abs(expenseGrowth).toFixed(1)}% 
-                    <span className="text-xs text-muted-foreground ml-1">环比</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/10 border-green-200 dark:border-green-900/50">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm font-medium text-green-600 dark:text-green-400">本月收入</p>
-                    <h3 className="text-2xl font-bold mt-2 text-green-700 dark:text-green-300">
-                      ¥ {currentIncome.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-                    </h3>
-                  </div>
-                  <div className={`flex items-center text-sm font-medium ${incomeGrowth > 0 ? 'text-green-600' : 'text-red-600'} bg-white/50 dark:bg-black/20 px-2 py-1 rounded-full`}>
-                     {incomeGrowth > 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
-                     {Math.abs(incomeGrowth).toFixed(1)}%
-                     <span className="text-xs text-muted-foreground ml-1">环比</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <TransactionFilters categories={categories} accounts={accounts} />
-          
-          <Card className="shadow-sm border-0 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm">
-            <TransactionList 
-              transactions={transactions}
-              page={page}
-              pageSize={pageSize}
-              totalPages={totalPages}
-              totalCount={totalCount}
-            />
-          </Card>
+          <TransactionPageWrapper 
+            currentExpense={currentExpense}
+            currentIncome={currentIncome}
+            expenseGrowth={expenseGrowth}
+            incomeGrowth={incomeGrowth}
+            transactions={transactions}
+            page={page}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            categories={categories}
+            accounts={accounts}
+          />
         </TabsContent>
 
         <TabsContent value="statistics">

@@ -136,44 +136,23 @@ export function TransactionForm({
 
       <div className="space-y-2">
         <Label htmlFor="accountId">{selectedType === 'TRANSFER' ? '转出账户' : '账户'}</Label>
-        <Select 
-          name="accountId" 
-          defaultValue={defaultValues?.accountId} 
-          required
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="选择账户" />
-          </SelectTrigger>
-          <SelectContent>
-            {flattenedAccounts.map((account) => (
-              <SelectItem 
-                key={account.id} 
-                value={account.id} 
-                className={account.depth === 0 ? "font-medium" : ""}
-                style={{ paddingLeft: account.depth > 0 ? `${account.depth * 1.5 + 0.5}rem` : undefined }}
-              >
-                <div className="flex items-center w-full gap-2">
-                  {account.depth > 0 && (
-                    <CornerDownRight className="h-3 w-3 text-muted-foreground/50 shrink-0" />
-                  )}
-                  <span>{account.name}</span>
-                  <span className="text-muted-foreground text-xs ml-auto">¥{account.balance}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {selectedType === 'TRANSFER' && (
-        <div className="space-y-2">
-          <Label htmlFor="targetAccountId">转入账户</Label>
+        {flattenedAccounts.length === 0 ? (
+          <div className="flex flex-col gap-2 p-4 border border-dashed rounded-md bg-muted/50">
+            <p className="text-sm text-muted-foreground">暂无账户，请先创建账户</p>
+            <Link href="/accounts/create">
+              <Button type="button" variant="outline" size="sm" className="w-full">
+                前往创建账户
+              </Button>
+            </Link>
+          </div>
+        ) : (
           <Select 
-            name="targetAccountId" 
+            name="accountId" 
+            defaultValue={defaultValues?.accountId} 
             required
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="选择转入账户" />
+              <SelectValue placeholder="选择账户" />
             </SelectTrigger>
             <SelectContent>
               {flattenedAccounts.map((account) => (
@@ -194,6 +173,49 @@ export function TransactionForm({
               ))}
             </SelectContent>
           </Select>
+        )}
+      </div>
+
+      {selectedType === 'TRANSFER' && (
+        <div className="space-y-2">
+          <Label htmlFor="targetAccountId">转入账户</Label>
+          {flattenedAccounts.length === 0 ? (
+            <div className="flex flex-col gap-2 p-4 border border-dashed rounded-md bg-muted/50">
+              <p className="text-sm text-muted-foreground">暂无账户，请先创建账户</p>
+              <Link href="/accounts/create">
+                <Button type="button" variant="outline" size="sm" className="w-full">
+                  前往创建账户
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <Select 
+              name="targetAccountId" 
+              required
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="选择转入账户" />
+              </SelectTrigger>
+              <SelectContent>
+                {flattenedAccounts.map((account) => (
+                  <SelectItem 
+                    key={account.id} 
+                    value={account.id} 
+                    className={account.depth === 0 ? "font-medium" : ""}
+                    style={{ paddingLeft: account.depth > 0 ? `${account.depth * 1.5 + 0.5}rem` : undefined }}
+                  >
+                    <div className="flex items-center w-full gap-2">
+                      {account.depth > 0 && (
+                        <CornerDownRight className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+                      )}
+                      <span>{account.name}</span>
+                      <span className="text-muted-foreground text-xs ml-auto">¥{account.balance}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       )}
 

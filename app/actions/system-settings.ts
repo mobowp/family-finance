@@ -10,10 +10,11 @@ export async function getSystemSettings() {
     throw new Error("Unauthorized");
   }
 
+  const familyId = (user as any).familyId || user.id;
+
   const settings = await prisma.systemSetting.findMany({
     where: {
-      // @ts-ignore
-      familyId: user.familyId || user.id
+      familyId: familyId
     }
   });
   return settings.reduce((acc, setting) => {
