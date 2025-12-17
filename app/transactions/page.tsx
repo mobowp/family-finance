@@ -51,6 +51,10 @@ export default async function TransactionsPage({
       by: ['type'],
       where: {
         date: { gte: currentMonthStart, lte: currentMonthEnd },
+        user: { 
+          // @ts-ignore
+          familyId: user.familyId || user.id 
+        }
       },
       _sum: { amount: true },
     }),
@@ -58,6 +62,10 @@ export default async function TransactionsPage({
       by: ['type'],
       where: {
         date: { gte: lastMonthStart, lte: lastMonthEnd },
+        user: { 
+          // @ts-ignore
+          familyId: user.familyId || user.id 
+        }
       },
       _sum: { amount: true },
     }),
@@ -77,7 +85,12 @@ export default async function TransactionsPage({
   const expenseGrowth = calculateGrowth(currentExpense, lastExpense);
 
   // 3. Prepare Filters for List
-  const where: Prisma.TransactionWhereInput = {};
+  const where: Prisma.TransactionWhereInput = {
+    user: {
+      // @ts-ignore
+      familyId: user.familyId || user.id // Fallback to user ID if no family (shouldn't happen with new logic)
+    }
+  };
 
   if (search && typeof search === 'string') {
     where.OR = [
@@ -144,7 +157,11 @@ export default async function TransactionsPage({
 
   const statsTransactions = await prisma.transaction.findMany({
     where: {
-      date: { gte: oneYearAgo }
+      date: { gte: oneYearAgo },
+      user: { 
+        // @ts-ignore
+        familyId: user.familyId || user.id 
+      }
     },
     include: {
       category: true,

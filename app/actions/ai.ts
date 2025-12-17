@@ -87,10 +87,12 @@ export async function chatWithAI(messages: Message[]) {
       return { error: "请先登录" };
     }
 
+    const familyId = (user as any).familyId || user.id;
+
     // 1. 获取 AI 配置
-    const provider = await getSystemSettingInternal('ai_provider');
-    const apiKey = await getSystemSettingInternal('ai_api_key');
-    const model = await getSystemSettingInternal('ai_model');
+    const provider = await getSystemSettingInternal('ai_provider', familyId);
+    const apiKey = await getSystemSettingInternal('ai_api_key', familyId);
+    const model = await getSystemSettingInternal('ai_model', familyId);
 
     console.log("AI Config:", { provider, model, hasKey: !!apiKey });
 

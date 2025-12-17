@@ -10,6 +10,7 @@ const RegisterSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(6),
+  inviteCode: z.string().optional(),
 });
 
 export async function authenticate(
@@ -43,7 +44,7 @@ export async function register(
     return '字段无效，注册失败';
   }
 
-  const { name, email, password } = validatedFields.data;
+  const { name, email, password, inviteCode } = validatedFields.data;
 
   try {
     // Check if user exists
@@ -55,6 +56,30 @@ export async function register(
       return '该邮箱已被注册';
     }
 
+    let familyId: string | undefined;
+
+    if (inviteCode) {
+      // @ts-ignore
+      const family = await prisma.family.findUnique({
+        where: { id: inviteCode },
+      });
+      if (family) {
+        familyId = family.id;
+      } else {
+        return '无效的邀请链接或邀请码';
+      }
+    }
+
+    if (!familyId) {
+      // @ts-ignore
+      const newFamily = await prisma.family.create({
+        data: {
+          name: `${name}的家庭`,
+        },
+      });
+      familyId = newFamily.id;
+    }
+
     // const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.user.create({
@@ -62,6 +87,9 @@ export async function register(
         name,
         email,
         password: password, // Store plain text password
+        // @ts-ignore
+        familyId,
+        role: inviteCode ? 'USER' : 'ADMIN', // If creating a family, become ADMIN
       },
     });
 

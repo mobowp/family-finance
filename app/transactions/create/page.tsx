@@ -5,6 +5,8 @@ import { TransactionForm } from "@/components/transaction-form";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CreateTransactionPage() {
   console.log("Rendering CreateTransactionPage...");
   const session = await auth();

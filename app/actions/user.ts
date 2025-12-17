@@ -28,6 +28,8 @@ export async function createUser(formData: FormData) {
         email,
         password: password, // Store plain text password
         role,
+        // @ts-ignore
+        familyId: (currentUser as any)?.familyId, // Assign to same family
       },
     });
   } catch (error) {

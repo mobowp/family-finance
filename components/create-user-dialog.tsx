@@ -25,14 +25,14 @@ export function CreateUserDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" className="gap-2">
-          <Plus className="h-4 w-4" /> 添加用户
+          <Plus className="h-4 w-4" /> 代创建成员
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>添加新用户</DialogTitle>
+          <DialogTitle>代创建家庭成员</DialogTitle>
           <DialogDescription>
-            创建一个新的系统用户。默认密码为 "password"，请提示用户登录后尽快修改。
+            为没有邮箱或不便操作的老人/儿童创建账号。默认密码为 "password"。
           </DialogDescription>
         </DialogHeader>
         <form 

@@ -40,6 +40,12 @@ export async function getFrequentCategoriesAndAccounts() {
   const [allCategories, allAccounts] = await Promise.all([
     prisma.category.findMany(),
     prisma.account.findMany({
+      where: {
+        user: {
+          // @ts-ignore
+          familyId: user.familyId || user.id
+        }
+      },
       include: { children: true }
     })
   ]);

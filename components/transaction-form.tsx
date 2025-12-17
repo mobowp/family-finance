@@ -89,6 +89,7 @@ export function TransactionForm({
           <SelectContent>
             <SelectItem value="EXPENSE">支出</SelectItem>
             <SelectItem value="INCOME">收入</SelectItem>
+            <SelectItem value="TRANSFER">转账</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -106,33 +107,35 @@ export function TransactionForm({
         />
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-            <Label htmlFor="categoryId">分类</Label>
-            <Link href="/settings?tab=categories" className="text-xs text-blue-600 hover:underline">
-                管理分类
-            </Link>
+      {selectedType !== 'TRANSFER' && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+              <Label htmlFor="categoryId">分类</Label>
+              <Link href="/settings?tab=categories" className="text-xs text-blue-600 hover:underline">
+                  管理分类
+              </Link>
+          </div>
+          <Select 
+            name="categoryId" 
+            defaultValue={defaultValues?.categoryId || "none"}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="选择分类" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">无分类</SelectItem>
+              {filteredCategories.map(cat => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select 
-          name="categoryId" 
-          defaultValue={defaultValues?.categoryId || "none"}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="选择分类" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">无分类</SelectItem>
-            {filteredCategories.map(cat => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      )}
 
       <div className="space-y-2">
-        <Label htmlFor="accountId">账户</Label>
+        <Label htmlFor="accountId">{selectedType === 'TRANSFER' ? '转出账户' : '账户'}</Label>
         <Select 
           name="accountId" 
           defaultValue={defaultValues?.accountId} 
@@ -161,6 +164,38 @@ export function TransactionForm({
           </SelectContent>
         </Select>
       </div>
+
+      {selectedType === 'TRANSFER' && (
+        <div className="space-y-2">
+          <Label htmlFor="targetAccountId">转入账户</Label>
+          <Select 
+            name="targetAccountId" 
+            required
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="选择转入账户" />
+            </SelectTrigger>
+            <SelectContent>
+              {flattenedAccounts.map((account) => (
+                <SelectItem 
+                  key={account.id} 
+                  value={account.id} 
+                  className={account.depth === 0 ? "font-medium" : ""}
+                  style={{ paddingLeft: account.depth > 0 ? `${account.depth * 1.5 + 0.5}rem` : undefined }}
+                >
+                  <div className="flex items-center w-full gap-2">
+                    {account.depth > 0 && (
+                      <CornerDownRight className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+                    )}
+                    <span>{account.name}</span>
+                    <span className="text-muted-foreground text-xs ml-auto">¥{account.balance}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="date">日期时间</Label>

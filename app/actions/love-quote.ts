@@ -53,6 +53,8 @@ async function getFinancialStats() {
   };
 }
 
+import { getCurrentUser } from "./user";
+
 export type QuoteResult = {
   content: string;
   type: string;
@@ -60,10 +62,20 @@ export type QuoteResult = {
 };
 
 export async function getDailyLoveQuote(): Promise<QuoteResult> {
+  const user = await getCurrentUser();
+  if (!user) {
+    return {
+      content: "请先登录",
+      type: "error",
+      daysLoved: null
+    };
+  }
+  const familyId = (user as any).familyId || user.id;
+
   const today = new Date().toISOString().split('T')[0];
   
   // 获取当前激活的模板
-  const activeTemplate = await getSystemSettingInternal('active_quote_template') || 'love_quote';
+  const activeTemplate = await getSystemSettingInternal('active_quote_template', familyId) || 'love_quote';
 
   // 1. 尝试从数据库获取今日内容
   const existingQuote = await prisma.dailyLoveQuote.findUnique({
@@ -84,10 +96,10 @@ export async function getDailyLoveQuote(): Promise<QuoteResult> {
 
   // 获取自定义 Prompt
   const customPromptKey = activeTemplate === 'love_quote' ? 'love_quote_prompt' : `template_prompt_${activeTemplate}`;
-  const customPrompt = await getSystemSettingInternal(customPromptKey);
+  const customPrompt = await getSystemSettingInternal(customPromptKey, familyId);
 
   if (activeTemplate === 'love_quote') {
-    const loveStartDate = await getSystemSettingInternal('love_start_date');
+    const loveStartDate = await getSystemSettingInternal('love_start_date', familyId);
     if (loveStartDate) {
       const start = new Date(loveStartDate);
       const now = new Date();
@@ -228,7 +240,11 @@ export async function refreshDailyLoveQuote() {
 }
 
 export async function getLoveDays() {
-  const loveStartDate = await getSystemSettingInternal('love_start_date');
+  const user = await getCurrentUser();
+  if (!user) return null;
+  const familyId = (user as any).familyId || user.id;
+
+  const loveStartDate = await getSystemSettingInternal('love_start_date', familyId);
   if (!loveStartDate) return null;
 
   const start = new Date(loveStartDate);

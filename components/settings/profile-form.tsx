@@ -73,6 +73,32 @@ export function ProfileForm({ user }: { user: any }) {
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? "保存中..." : "保存更改"}
       </Button>
+
+      {user.familyId && user.role === 'ADMIN' && (
+        <div className="space-y-2 pt-4 border-t">
+          <Label>家庭邀请链接</Label>
+          <div className="flex gap-2">
+            <Input 
+              readOnly 
+              value={`${typeof window !== 'undefined' ? window.location.origin : ''}/register?invite=${user.familyId}`} 
+            />
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={() => {
+                const url = `${window.location.origin}/register?invite=${user.familyId}`;
+                navigator.clipboard.writeText(url);
+                alert("邀请链接已复制");
+              }}
+            >
+              复制
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            将此链接发送给家人，他们注册后将自动加入您的家庭。
+          </p>
+        </div>
+      )}
     </form>
   );
 }

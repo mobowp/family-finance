@@ -9,10 +9,29 @@ export default async function Home() {
 
   // 1. Fetch Data
   const [accounts, assets, transactions] = await Promise.all([
-    prisma.account.findMany({ where: { userId: user!.id } }),
-    prisma.asset.findMany({ where: { userId: user!.id } }),
+    prisma.account.findMany({ 
+      where: { 
+        user: {
+          // @ts-ignore
+          familyId: user.familyId || user.id
+        }
+      } 
+    }),
+    prisma.asset.findMany({ 
+      where: { 
+        user: {
+          // @ts-ignore
+          familyId: user.familyId || user.id
+        }
+      } 
+    }),
     prisma.transaction.findMany({
-      where: { userId: user!.id },
+      where: { 
+        user: {
+          // @ts-ignore
+          familyId: user.familyId || user.id
+        }
+      },
       orderBy: [{ date: 'desc' }, { id: 'desc' }],
       take: 5,
       include: { category: true, account: true }
@@ -44,7 +63,10 @@ export default async function Home() {
 
   const monthlyTransactions = await prisma.transaction.findMany({
     where: {
-      userId: user!.id,
+      user: {
+        // @ts-ignore
+        familyId: user.familyId || user.id
+      },
       date: {
         gte: startOfMonth,
         lt: startOfNextMonth

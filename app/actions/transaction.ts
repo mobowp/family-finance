@@ -11,6 +11,7 @@ export async function createTransaction(formData: FormData) {
   const description = formData.get('description') as string;
   const categoryId = formData.get('categoryId') as string;
   const accountId = formData.get('accountId') as string;
+  const targetAccountId = formData.get('targetAccountId') as string;
   const date = new Date(formData.get('date') as string);
 
   // Get current user from cookie or fallback
@@ -18,6 +19,14 @@ export async function createTransaction(formData: FormData) {
 
   if (!user) {
     throw new Error('User not found. Please create a user first.');
+  }
+
+  if (type === 'TRANSFER' && !targetAccountId) {
+    throw new Error('转账必须选择转入账户');
+  }
+
+  if (type === 'TRANSFER' && accountId === targetAccountId) {
+    throw new Error('转出账户和转入账户不能相同');
   }
 
   // Transaction logic
@@ -30,8 +39,9 @@ export async function createTransaction(formData: FormData) {
           type,
           description,
           date,
-          categoryId: categoryId === 'none' ? null : categoryId,
+          categoryId: (type === 'TRANSFER' || categoryId === 'none') ? null : categoryId,
           accountId,
+          targetAccountId: type === 'TRANSFER' ? targetAccountId : null,
           userId: user.id,
         },
       });
@@ -44,12 +54,25 @@ export async function createTransaction(formData: FormData) {
           newBalance += amount;
         } else if (type === 'EXPENSE') {
           newBalance -= amount;
+        } else if (type === 'TRANSFER') {
+          newBalance -= amount; // Deduct from source
         }
         
         await tx.account.update({
           where: { id: accountId },
           data: { balance: newBalance },
         });
+      }
+
+      // 3. Update Target Account Balance (for Transfer)
+      if (type === 'TRANSFER' && targetAccountId) {
+        const targetAccount = await tx.account.findUnique({ where: { id: targetAccountId } });
+        if (targetAccount) {
+          await tx.account.update({
+            where: { id: targetAccountId },
+            data: { balance: targetAccount.balance + amount }, // Add to target
+          });
+        }
       }
     });
   } catch (error) {
@@ -68,7 +91,16 @@ export async function updateTransaction(id: string, formData: FormData) {
   const description = formData.get('description') as string;
   const categoryId = formData.get('categoryId') as string;
   const accountId = formData.get('accountId') as string;
+  const targetAccountId = formData.get('targetAccountId') as string;
   const date = new Date(formData.get('date') as string);
+
+  if (type === 'TRANSFER' && !targetAccountId) {
+    throw new Error('转账必须选择转入账户');
+  }
+
+  if (type === 'TRANSFER' && accountId === targetAccountId) {
+    throw new Error('转出账户和转入账户不能相同');
+  }
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -87,12 +119,25 @@ export async function updateTransaction(id: string, formData: FormData) {
           let revertedBalance = oldAccount.balance;
           if (oldTransaction.type === 'INCOME') {
             revertedBalance -= oldTransaction.amount;
-          } else {
+          } else if (oldTransaction.type === 'EXPENSE') {
             revertedBalance += oldTransaction.amount;
+          } else if (oldTransaction.type === 'TRANSFER') {
+            revertedBalance += oldTransaction.amount; // Add back to source
           }
           await tx.account.update({
             where: { id: oldTransaction.accountId },
             data: { balance: revertedBalance }
+          });
+        }
+      }
+
+      // Revert target account effect if it was a transfer
+      if (oldTransaction.type === 'TRANSFER' && oldTransaction.targetAccountId) {
+        const oldTargetAccount = await tx.account.findUnique({ where: { id: oldTransaction.targetAccountId } });
+        if (oldTargetAccount) {
+          await tx.account.update({
+            where: { id: oldTransaction.targetAccountId },
+            data: { balance: oldTargetAccount.balance - oldTransaction.amount } // Deduct from target
           });
         }
       }
@@ -105,8 +150,9 @@ export async function updateTransaction(id: string, formData: FormData) {
           type,
           description,
           date,
-          categoryId: categoryId === 'none' ? null : categoryId,
+          categoryId: (type === 'TRANSFER' || categoryId === 'none') ? null : categoryId,
           accountId,
+          targetAccountId: type === 'TRANSFER' ? targetAccountId : null,
         },
       });
 
@@ -116,13 +162,26 @@ export async function updateTransaction(id: string, formData: FormData) {
         let newBalance = newAccount.balance;
         if (type === 'INCOME') {
           newBalance += amount;
-        } else {
+        } else if (type === 'EXPENSE') {
           newBalance -= amount;
+        } else if (type === 'TRANSFER') {
+          newBalance -= amount; // Deduct from source
         }
         await tx.account.update({
           where: { id: accountId },
           data: { balance: newBalance }
         });
+      }
+
+      // Apply new target account effect
+      if (type === 'TRANSFER' && targetAccountId) {
+        const newTargetAccount = await tx.account.findUnique({ where: { id: targetAccountId } });
+        if (newTargetAccount) {
+          await tx.account.update({
+            where: { id: targetAccountId },
+            data: { balance: newTargetAccount.balance + amount } // Add to target
+          });
+        }
       }
     });
   } catch (error) {
@@ -152,12 +211,25 @@ export async function deleteTransactions(ids: string[]) {
             let newBalance = account.balance;
             if (transaction.type === 'INCOME') {
               newBalance -= transaction.amount;
-            } else {
+            } else if (transaction.type === 'EXPENSE') {
               newBalance += transaction.amount;
+            } else if (transaction.type === 'TRANSFER') {
+              newBalance += transaction.amount; // Add back to source
             }
             await tx.account.update({
               where: { id: transaction.accountId },
               data: { balance: newBalance }
+            });
+          }
+        }
+
+        // Revert target account balance if transfer
+        if (transaction.type === 'TRANSFER' && transaction.targetAccountId) {
+          const targetAccount = await tx.account.findUnique({ where: { id: transaction.targetAccountId } });
+          if (targetAccount) {
+            await tx.account.update({
+              where: { id: transaction.targetAccountId },
+              data: { balance: targetAccount.balance - transaction.amount } // Deduct from target
             });
           }
         }

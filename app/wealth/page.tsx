@@ -7,12 +7,20 @@ export default async function WealthPage({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
+  const currentUser = await getCurrentUser();
+  
   // Fetch accounts
   let accounts: any[] = [];
   try {
      accounts = await prisma.account.findMany({
        // @ts-ignore
-       where: { parentId: null },
+       where: { 
+         parentId: null,
+         user: {
+           // @ts-ignore
+           familyId: currentUser?.familyId || currentUser?.id
+         }
+       },
        include: { 
         // @ts-ignore
         children: true,
@@ -28,15 +36,23 @@ export default async function WealthPage({
      console.error(e);
   }
 
-  const currentUser = await getCurrentUser();
-  
   // Always fetch users for filtering, regardless of role
   const users = await prisma.user.findMany({
+    where: {
+      // @ts-ignore
+      familyId: currentUser?.familyId || currentUser?.id
+    },
     select: { id: true, name: true, email: true }
   });
 
   // Fetch assets
   const assets = await prisma.asset.findMany({
+    where: {
+      user: {
+        // @ts-ignore
+        familyId: currentUser?.familyId || currentUser?.id
+      }
+    },
     include: {
       user: {
         select: {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
+import { useSearchParams } from 'next/navigation';
 import { register } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,9 +20,12 @@ function RegisterButton() {
 
 export function RegisterForm() {
   const [errorMessage, dispatch] = useFormState(register, undefined);
+  const searchParams = useSearchParams();
+  const inviteCode = searchParams.get('invite');
 
   return (
     <form action={dispatch}>
+      {inviteCode && <input type="hidden" name="inviteCode" value={inviteCode} />}
       <Card className="w-full max-w-sm mx-auto backdrop-blur-xl bg-white/50 dark:bg-black/50 border-0 shadow-2xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">创建账号</CardTitle>

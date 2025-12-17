@@ -2,6 +2,8 @@
 
 import { getSystemSettingInternal } from "@/lib/system-settings";
 
+import { getCurrentUser } from "./user";
+
 export async function getStockPrice(symbol: string) {
   // Handle symbol format: 
   // If input is "00700" or "00700.HK", convert to "hk00700"
@@ -23,9 +25,18 @@ export async function getStockPrice(symbol: string) {
     apiSymbol = `hk${paddedSymbol}`;
   }
 
+  const user = await getCurrentUser();
+  if (!user) {
+    return {
+      success: false,
+      message: 'Please login first.'
+    };
+  }
+  const familyId = (user as any).familyId || user.id;
+
   // Get API credentials from database
-  const appkey = await getSystemSettingInternal('k780_appkey');
-  const sign = await getSystemSettingInternal('k780_sign');
+  const appkey = await getSystemSettingInternal('k780_appkey', familyId);
+  const sign = await getSystemSettingInternal('k780_sign', familyId);
 
   if (!appkey || !sign) {
     return {

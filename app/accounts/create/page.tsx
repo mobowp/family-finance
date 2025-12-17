@@ -2,14 +2,22 @@ import { createAccount } from "@/app/actions/account";
 import { AccountForm } from "@/components/account-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/app/actions/user";
 
 export default async function CreateAccountPage({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
+  const user = await getCurrentUser();
   const accounts = await prisma.account.findMany({
-    where: { parentId: null } // Only top level accounts can be parents for now to avoid deep nesting complexity
+    where: { 
+      parentId: null,
+      user: {
+        // @ts-ignore
+        familyId: user?.familyId || user?.id
+      }
+    } 
   });
 
   const parentId = typeof searchParams.parentId === 'string' ? searchParams.parentId : undefined;

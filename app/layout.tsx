@@ -5,6 +5,8 @@ import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { AiChatWidget } from "@/components/ai-chat-widget";
+import { Providers } from "@/components/providers";
+import { SessionWatcher } from "@/components/session-watcher";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,11 +35,14 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={inter.className}>
-        <Navbar />
-        {children}
-        <AiChatWidget />
-        <Toaster />
-        <SonnerToaster position="top-left" duration={1000} />
+        <Providers>
+          <SessionWatcher />
+          <Navbar />
+          {children}
+          <AiChatWidget />
+          <Toaster />
+          <SonnerToaster position="top-left" duration={1000} />
+        </Providers>
       </body>
     </html>
   );

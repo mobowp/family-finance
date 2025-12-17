@@ -10,7 +10,12 @@ export async function getSystemSettings() {
     throw new Error("Unauthorized");
   }
 
-  const settings = await prisma.systemSetting.findMany();
+  const settings = await prisma.systemSetting.findMany({
+    where: {
+      // @ts-ignore
+      familyId: user.familyId || user.id
+    }
+  });
   return settings.reduce((acc, setting) => {
     acc[setting.key] = setting.value;
     return acc;
@@ -23,10 +28,21 @@ export async function updateSystemSetting(key: string, value: string) {
     throw new Error("Unauthorized");
   }
 
+  const familyId = (user as any).familyId || user.id;
+
   await prisma.systemSetting.upsert({
-    where: { key },
+    where: { 
+      key_familyId: {
+        key,
+        familyId
+      }
+    },
     update: { value },
-    create: { key, value },
+    create: { 
+      key, 
+      value,
+      familyId
+    },
   });
 
   revalidatePath('/settings');
