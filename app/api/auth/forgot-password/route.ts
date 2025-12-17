@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendPasswordResetEmail } from '@/lib/email';
 import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -37,15 +38,26 @@ export async function POST(request: NextRequest) {
 
     const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
 
-    console.log('='.repeat(80));
-    console.log('密码重置链接 (MagicLink):');
-    console.log(resetUrl);
-    console.log('='.repeat(80));
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+      const result = await sendPasswordResetEmail(email, resetUrl);
+      
+      if (!result.success) {
+        console.error('邮件发送失败,回退到控制台输出');
+        console.log('='.repeat(80));
+        console.log('密码重置链接 (MagicLink):');
+        console.log(resetUrl);
+        console.log('='.repeat(80));
+      }
+    } else {
+      console.log('='.repeat(80));
+      console.log('邮件服务未配置,密码重置链接 (MagicLink):');
+      console.log(resetUrl);
+      console.log('='.repeat(80));
+    }
 
     return NextResponse.json(
       { 
-        message: '如果该邮箱存在,我们已发送重置密码链接',
-        resetUrl 
+        message: '如果该邮箱存在,我们已发送重置密码链接'
       },
       { status: 200 }
     );
