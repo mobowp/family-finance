@@ -1,5 +1,9 @@
 # 家庭理财管理系统 (Family Finance System)
-### 种子用户，用于测试
+
+
+
+### 种子用户，用于测试,测试，测试
+
 邮箱：wsc@wanda.com
 密码：password
 
