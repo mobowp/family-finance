@@ -76,16 +76,5 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         return null;
       },
     }),
-    Nodemailer({
-      server: {
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.EMAIL_PORT || '587'),
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      },
-      from: `"${process.env.EMAIL_FROM_NAME || '家庭理财系统'}" <${process.env.EMAIL_USER}>`,
-    }),
   ],
 });
