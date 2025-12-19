@@ -102,8 +102,6 @@ export function AccountForm({ action, parentAccounts = [], users = [], defaultVa
     try {
       if (defaultValues?.id) {
         await deleteAccount(defaultValues.id);
-        router.push('/wealth?tab=accounts');
-        router.refresh();
       }
     } catch (error) {
       setDeleteError(error instanceof Error ? error.message : "删除失败");
@@ -115,7 +113,7 @@ export function AccountForm({ action, parentAccounts = [], users = [], defaultVa
     if (!confirm("确定要删除这个子账户吗？此操作不可撤销。")) return;
     
     try {
-      await deleteAccount(childId);
+      await deleteAccount(childId, true);
       router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "删除失败");

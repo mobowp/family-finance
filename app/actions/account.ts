@@ -112,7 +112,7 @@ export async function updateAccount(id: string, formData: FormData) {
   redirect('/wealth?tab=accounts');
 }
 
-export async function deleteAccount(id: string) {
+export async function deleteAccount(id: string, isChild: boolean = false) {
   try {
     // Check if account has transactions
     const transactionCount = await prisma.transaction.count({
@@ -142,6 +142,10 @@ export async function deleteAccount(id: string) {
 
   revalidatePath('/accounts');
   revalidatePath('/wealth');
+  
+  if (!isChild) {
+    redirect('/wealth?tab=accounts');
+  }
 }
 
 export async function createChildAccount(formData: FormData) {
