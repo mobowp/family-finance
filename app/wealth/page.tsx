@@ -5,13 +5,15 @@ import { WealthDashboard } from "@/components/wealth/wealth-dashboard";
 export default async function WealthPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const currentUser = await getCurrentUser();
   
   if (!currentUser) {
     return <div>请先登录</div>;
   }
+
+  const params = await searchParams;
 
   const familyId = (currentUser as any).familyId || currentUser.id;
   const userFilter = {
@@ -92,7 +94,7 @@ export default async function WealthPage({
       assets={assets}
       assetTypes={assetTypes}
       users={users}
-      defaultTab={(searchParams.tab as string) || "accounts"}
+      defaultTab={(params.tab as string) || "accounts"}
     />
   );
 }

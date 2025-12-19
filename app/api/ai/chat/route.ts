@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { getSystemSettings } from "@/app/actions/system-settings";
 import { prisma } from "@/lib/prisma";
 
-async function getFinancialContext(userId: string, familyId: string): Promise<string> {
+async function getFinancialContext(userId: string, familyId: string, includeFamily: boolean = false): Promise<string> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { familyId: true }
@@ -21,7 +21,7 @@ async function getFinancialContext(userId: string, familyId: string): Promise<st
     select: { id: true, name: true }
   });
 
-  const familyMemberIds = familyMembers.map(m => m.id);
+  const familyMemberIds = includeFamily ? familyMembers.map(m => m.id) : [userId];
 
   const accounts = await prisma.account.findMany({
     where: { userId: { in: familyMemberIds } },
@@ -127,31 +127,38 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop()?.content || '';
+    const familyKeywords = ['家庭', '全家', '家里', '所有人', '大家', '我们家', '家人'];
+    const includeFamily = familyKeywords.some(keyword => lastUserMessage.includes(keyword));
+
     let financialContext = "";
     try {
-      financialContext = await getFinancialContext(session.user.id, familyId);
+      financialContext = await getFinancialContext(session.user.id, familyId, includeFamily);
     } catch (e) {
       console.error("Failed to get financial context:", e);
     }
 
+    const dataScope = includeFamily ? '家庭' : '个人';
+    
     const systemPrompt = {
       role: 'system',
-      content: `你是一个专业的家庭财务理财助手。
+      content: `你是一个专业的财务理财助手。
 
-【重要规则】
-1. 你只能基于下方提供的实际财务数据进行分析和回答
-2. 严禁编造、推测或杜撰任何不存在的交易、账户或资产信息
-3. 如果数据为空或不足以回答问题，请明确告知用户并建议添加数据
-4. 所有数字、金额、交易描述必须来自实际数据，不得虚构
+【核心原则 - 极其重要】
+1. 数据范围：下方提供的数据是 **${dataScope}财务数据**
+2. 数据真实性：**绝对不要**编造、推测或杜撰任何不存在的交易、账户或资产信息
+3. 明确指代范围是：当前数据${dataScope}数据，所有分析必须基于实际提供的数据
+4. 严禁虚构：所有数字、金额、交易必须来自实际数据，不得编造
 
-【当前家庭财务数据】
+【当前财务数据】
 ${financialContext}
 
 【回答要求】
-- 仅基于上述实际数据进行分析
-- 数据中已标注所属用户，可按需筛选
-- 保持回答简洁、专业、客观
-- 如果数据不足，诚实告知而非猜测`
+1. 明确告知用户这是${dataScope}数据
+2. 仅基于上述实际数据进行分析
+3. 保持回答简洁、专业、准确
+4. 数据不足时诚实告知，不要猜测
+5. ${includeFamily ? '数据中已标注所属用户名称，可按用户分析' : '这是当前用户的个人数据，不包含其他家庭成员'}`
     };
 
     const apiMessages = [systemPrompt, ...messages];

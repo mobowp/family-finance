@@ -20,37 +20,20 @@ export default async function Home() {
     redirect('/api/auth/signout');
   }
 
-  const familyId = userRecord.familyId || userRecord.id;
-
   const [accounts, assets, transactions] = await Promise.all([
     prisma.account.findMany({ 
       where: { 
-        user: {
-          OR: [
-            { id: userRecord.id },
-            { familyId: familyId }
-          ]
-        }
+        userId: userRecord.id
       } 
     }),
     prisma.asset.findMany({ 
       where: { 
-        user: {
-          OR: [
-            { id: userRecord.id },
-            { familyId: familyId }
-          ]
-        }
+        userId: userRecord.id
       } 
     }),
     prisma.transaction.findMany({
       where: { 
-        user: {
-          OR: [
-            { id: userRecord.id },
-            { familyId: familyId }
-          ]
-        }
+        userId: userRecord.id
       },
       orderBy: [{ date: 'desc' }, { id: 'desc' }],
       take: 5,
@@ -83,12 +66,7 @@ export default async function Home() {
 
   const monthlyTransactions = await prisma.transaction.findMany({
     where: {
-      user: {
-        OR: [
-          { id: userRecord.id },
-          { familyId: familyId }
-        ]
-      },
+      userId: userRecord.id,
       date: {
         gte: startOfMonth,
         lt: startOfNextMonth

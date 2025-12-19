@@ -6,7 +6,7 @@ import { getCurrentUser } from "./user";
 
 export async function getSystemSettings() {
   const user = await getCurrentUser();
-  if (!user || user.role !== 'ADMIN') {
+  if (!user) {
     throw new Error("Unauthorized");
   }
 

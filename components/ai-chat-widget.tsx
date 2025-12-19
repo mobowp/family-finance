@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Bot, Send, X, Square, MessageSquarePlus, Plus, ChevronDown, ChevronUp, Brain } from "lucide-react";
 import { Message } from "@/app/actions/ai";
 import { getSystemSettings } from "@/app/actions/system-settings";
+import { getCurrentUser } from "@/app/actions/user";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -16,6 +17,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export function AiChatWidget() {
   const pathname = usePathname();
+  const [user, setUser] = useState<{ name: string | null; email: string | null; image: string | null } | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: '你好！我是你的家庭理财助手。我可以帮你分析财务状况、总结花销，或者回答关于理财的问题。' }
@@ -40,7 +42,17 @@ export function AiChatWidget() {
     if (cachedAvatar) setAiAvatar(cachedAvatar);
     if (cachedModel) setAiModel(cachedModel);
     loadAiSettings();
+    loadUserData();
   }, [pathname]);
+
+  async function loadUserData() {
+    try {
+      const userData = await getCurrentUser();
+      setUser(userData);
+    } catch (e) {
+      console.error("Failed to load user data", e);
+    }
+  }
 
   useEffect(() => {
     if (pathname === "/login" || pathname === "/register" || pathname === "/forgot-password" || pathname === "/reset-password") {
@@ -383,8 +395,9 @@ export function AiChatWidget() {
                       </Avatar>
                     ) : (
                       <Avatar className="h-9 w-9 shrink-0 mt-0.5 ring-2 ring-blue-100 dark:ring-blue-900">
+                        <AvatarImage src={user?.image || undefined} className="object-cover" />
                         <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-sm font-medium">
-                          我
+                          {user?.name?.charAt(0) || '我'}
                         </AvatarFallback>
                       </Avatar>
                     )}

@@ -23,7 +23,7 @@ import { TransactionPageWrapper } from "@/components/transaction-page-wrapper";
 export default async function TransactionsPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await auth();
   if (!session?.user?.email) {
@@ -46,11 +46,12 @@ export default async function TransactionsPage({
     ]
   };
 
-  const { search, type, categoryId, accountId, startDate, endDate, view } = searchParams;
+  const params = await searchParams;
+  const { search, type, categoryId, accountId, startDate, endDate, view } = params;
   
   // Pagination Parameters
-  const page = Number(searchParams.page) || 1;
-  const pageSize = Number(searchParams.pageSize) || 100;
+  const page = Number(params.page) || 1;
+  const pageSize = Number(params.pageSize) || 100;
   const skip = (page - 1) * pageSize;
 
   // 1. Calculate Date Ranges for Statistics (Summary Cards)

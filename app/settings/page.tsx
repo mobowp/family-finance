@@ -22,7 +22,7 @@ import {
 export default async function SettingsPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const user = await getCurrentUser();
 
@@ -31,7 +31,8 @@ export default async function SettingsPage({
   }
 
   const isAdmin = user.email === 'mobowp027@gmail.com' || (user as any).role === 'ADMIN';
-  const defaultTab = typeof searchParams.tab === 'string' ? searchParams.tab : 'profile';
+  const params = await searchParams;
+  const defaultTab = typeof params.tab === 'string' ? params.tab : 'profile';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4 md:p-8 pb-24 md:pb-8">

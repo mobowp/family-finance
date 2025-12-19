@@ -42,12 +42,7 @@ export async function getFrequentCategoriesAndAccounts() {
     prisma.category.findMany(),
     prisma.account.findMany({
       where: {
-        user: {
-          OR: [
-            { id: user.id },
-            { familyId: familyId }
-          ]
-        }
+        userId: user.id
       },
       include: { children: true }
     })
