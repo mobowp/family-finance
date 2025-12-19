@@ -23,11 +23,19 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
-        if (token.name) session.user.name = token.name as string;
-        if (token.email) session.user.email = token.email as string;
-        if (token.picture) session.user.image = token.picture as string;
-        (session.user as any).role = token.role;
-        (session.user as any).familyId = token.familyId;
+        
+        const user = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { id: true, name: true, email: true, image: true, role: true, familyId: true }
+        });
+        
+        if (user) {
+          session.user.name = user.name;
+          session.user.email = user.email;
+          session.user.image = user.image;
+          (session.user as any).role = user.role;
+          (session.user as any).familyId = user.familyId;
+        }
       }
       return session;
     },
@@ -35,8 +43,6 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       if (trigger === 'signIn' || trigger === 'signUp') {
         if (user) {
           token.sub = user.id;
-          token.role = (user as any).role;
-          token.familyId = (user as any).familyId;
         }
       }
       
