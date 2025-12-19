@@ -128,8 +128,25 @@ export async function POST(req: NextRequest) {
     }
 
     const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop()?.content || '';
-    const familyKeywords = ['家庭', '全家', '家里', '所有人', '大家', '我们家', '家人'];
-    const includeFamily = familyKeywords.some(keyword => lastUserMessage.includes(keyword));
+    
+    const currentFamilyMembers = await prisma.user.findMany({
+      where: { 
+        OR: [
+          { id: familyId },
+          { familyId: familyId }
+        ]
+      },
+      select: { name: true }
+    });
+    
+    const memberNames = currentFamilyMembers.map(m => m.name).filter(Boolean) as string[];
+    const otherMemberNames = memberNames.filter(name => name !== session.user?.name);
+    
+    const familyKeywords = ['家庭', '全家', '家里', '所有人', '大家', '我们家', '家人', '成员'];
+    const hasFamilyKeyword = familyKeywords.some(keyword => lastUserMessage.includes(keyword));
+    const mentionsOtherMember = otherMemberNames.some(name => lastUserMessage.includes(name));
+    
+    const includeFamily = hasFamilyKeyword || mentionsOtherMember;
 
     let financialContext = "";
     try {
