@@ -17,7 +17,7 @@ export const authConfig = {
     },
   },
   session: {
-    strategy: 'database' as const,
+    strategy: 'jwt' as const,
     maxAge: 24 * 60 * 60,
   },
   useSecureCookies: false,

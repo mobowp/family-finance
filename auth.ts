@@ -18,7 +18,6 @@ async function getUser(email: string) {
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
   callbacks: {
     ...authConfig.callbacks,
     async session({ session, token }) {
