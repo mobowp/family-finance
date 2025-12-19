@@ -1,13 +1,6 @@
 # 家庭理财管理系统 (Family Finance System)
 
 
-
-### 种子用户，用于测试,测试，测试
-
-邮箱：wsc@wanda.com
-密码：password
-
-
 ## 项目简介
 这是一个基于 **Next.js 14** + **Prisma** + **PostgreSQL** 的家庭理财管理系统，旨在提供智能记账、资产管理和数据统计功能。
 
