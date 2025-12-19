@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import { authConfig } from './auth.config';
 import Credentials from 'next-auth/providers/credentials';
+import Nodemailer from 'next-auth/providers/nodemailer';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -60,14 +61,25 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
              passwordsMatch = await bcrypt.compare(password, user.password);
           } else {
              passwordsMatch = password === user.password;
-          }
+                   }
 
-          if (passwordsMatch) return user;
+ if (passwordsMatch) return user;
         }
         
         console.log('Invalid credentials');
         return null;
       },
+    }),
+    Nodemailer({
+      server: {
+        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.EMAIL_PORT || '587'),
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      },
+      from: `"${process.env.EMAIL_FROM_NAME || '家庭理财系统'}" <${process.env.EMAIL_USER}>`,
     }),
   ],
 });
