@@ -6,6 +6,8 @@ import { Heart, RefreshCw, Calendar, Wallet, Activity, Utensils } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 type QuoteResult = {
   content: string;
@@ -148,9 +150,11 @@ export function LoveQuoteCard() {
       <CardContent className="relative z-10">
         <div className="space-y-4">
           <div className="min-h-[60px] flex items-center">
-            <p className="text-base tracking-wide text-justify text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
-              {quoteData?.content || "内容生成中..."}
-            </p>
+            <div className="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-200 prose-p:leading-relaxed prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {quoteData?.content || "内容生成中..."}
+              </ReactMarkdown>
+            </div>
           </div>
           
           {quoteData?.type === 'love_quote' && quoteData.daysLoved !== null && (
