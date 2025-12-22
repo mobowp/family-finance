@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import {
   Select,
   SelectContent,
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CornerDownRight } from "lucide-react";
+import { CornerDownRight, Loader2 } from "lucide-react";
 
 interface TransactionFormProps {
   action: (formData: FormData) => Promise<void>;
@@ -37,6 +37,7 @@ export function TransactionForm({
   submitLabel = "保存"
 }: TransactionFormProps) {
   const [selectedType, setSelectedType] = useState(defaultValues?.type || "EXPENSE");
+  const [isPending, startTransition] = useTransition();
 
   const filteredCategories = categories.filter(cat => cat.type === selectedType);
 
@@ -73,8 +74,14 @@ export function TransactionForm({
 
   const flattenedAccounts = getFlattenedAccounts();
 
+  const handleSubmit = async (formData: FormData) => {
+    startTransition(async () => {
+      await action(formData);
+    });
+  };
+
   return (
-    <form action={action} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="type">交易类型</Label>
         <Select 
@@ -247,12 +254,19 @@ export function TransactionForm({
 
       <div className="flex gap-4">
         <Link href="/transactions" className="w-full">
-          <Button type="button" variant="outline" className="w-full">
+          <Button type="button" variant="outline" className="w-full" disabled={isPending}>
             取消
           </Button>
         </Link>
-        <Button type="submit" className="w-full">
-          {submitLabel}
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              保存中...
+            </>
+          ) : (
+            submitLabel
+          )}
         </Button>
       </div>
     </form>
