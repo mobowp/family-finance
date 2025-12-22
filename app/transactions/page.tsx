@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Plus, Upload, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Prisma } from "@prisma/client";
-import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { StatisticsTabContent } from "@/components/statistics-tab-content";
@@ -52,47 +51,9 @@ export default async function TransactionsPage({
   const pageSize = Number(params.pageSize) || 50;
   const skip = (page - 1) * pageSize;
 
-  // 1. Calculate Date Ranges for Statistics (Summary Cards)
-  const now = new Date();
-  const currentMonthStart = startOfMonth(now);
-  const currentMonthEnd = endOfMonth(now);
-  const lastMonthStart = startOfMonth(subMonths(now, 1));
-  const lastMonthEnd = endOfMonth(subMonths(now, 1));
+  // 月度统计数据改为客户端按需加载
 
-  // 2. Fetch Statistics (Summary Cards)
-  const [currentMonthStats, lastMonthStats] = await Promise.all([
-    prisma.transaction.groupBy({
-      by: ['type'],
-      where: {
-        date: { gte: currentMonthStart, lte: currentMonthEnd },
-        user: userFilter
-      },
-      _sum: { amount: true },
-    }),
-    prisma.transaction.groupBy({
-      by: ['type'],
-      where: {
-        date: { gte: lastMonthStart, lte: lastMonthEnd },
-        user: userFilter
-      },
-      _sum: { amount: true },
-    }),
-  ]);
-
-  const currentIncome = currentMonthStats.find(s => s.type === 'INCOME')?._sum.amount || 0;
-  const currentExpense = currentMonthStats.find(s => s.type === 'EXPENSE')?._sum.amount || 0;
-  const lastIncome = lastMonthStats.find(s => s.type === 'INCOME')?._sum.amount || 0;
-  const lastExpense = lastMonthStats.find(s => s.type === 'EXPENSE')?._sum.amount || 0;
-
-  const calculateGrowth = (current: number, last: number) => {
-    if (last === 0) return current > 0 ? 100 : 0;
-    return ((current - last) / last) * 100;
-  };
-
-  const incomeGrowth = calculateGrowth(currentIncome, lastIncome);
-  const expenseGrowth = calculateGrowth(currentExpense, lastExpense);
-
-  // 3. Prepare Filters for List
+  // Prepare Filters for List
   const where: Prisma.TransactionWhereInput = {
     user: {
       // @ts-ignore
@@ -211,10 +172,6 @@ export default async function TransactionsPage({
 
         <TabsContent value="list" className="space-y-8">
           <TransactionPageWrapper 
-            currentExpense={currentExpense}
-            currentIncome={currentIncome}
-            expenseGrowth={expenseGrowth}
-            incomeGrowth={incomeGrowth}
             transactions={transactions}
             page={page}
             pageSize={pageSize}

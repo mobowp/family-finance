@@ -1,16 +1,12 @@
 'use client';
 
 import { Card } from "@/components/ui/card";
-import { TransactionStatsCards } from "@/components/transaction-stats-cards";
+import { MonthlyStatsLoader } from "@/components/monthly-stats-loader";
 import { TransactionList } from "@/components/transaction-list";
 import { TransactionFilters } from "@/components/transaction-filters";
 import { useVisibilityState } from "@/hooks/use-visibility-state";
 
 interface TransactionPageWrapperProps {
-  currentExpense: number;
-  currentIncome: number;
-  expenseGrowth: number;
-  incomeGrowth: number;
   transactions: any[];
   page: number;
   pageSize: number;
@@ -21,10 +17,6 @@ interface TransactionPageWrapperProps {
 }
 
 export function TransactionPageWrapper({
-  currentExpense,
-  currentIncome,
-  expenseGrowth,
-  incomeGrowth,
   transactions,
   page,
   pageSize,
@@ -37,13 +29,7 @@ export function TransactionPageWrapper({
 
   return (
     <div className="space-y-8">
-      <TransactionStatsCards 
-        currentExpense={currentExpense}
-        currentIncome={currentIncome}
-        expenseGrowth={expenseGrowth}
-        incomeGrowth={incomeGrowth}
-        isVisible={isVisible}
-      />
+      <MonthlyStatsLoader isVisible={isVisible} />
 
       <TransactionFilters categories={categories} accounts={accounts} />
       
