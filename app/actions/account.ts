@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from './user';
 
@@ -38,6 +38,8 @@ export async function createAccount(formData: FormData) {
 
   revalidatePath('/accounts');
   revalidatePath('/wealth');
+  revalidatePath('/transactions');
+  revalidateTag('accounts');
   redirect('/wealth?tab=accounts');
 }
 
@@ -118,6 +120,8 @@ export async function updateAccount(id: string, formData: FormData) {
 
   revalidatePath('/accounts');
   revalidatePath('/wealth');
+  revalidatePath('/transactions');
+  revalidateTag('accounts');
   redirect('/wealth?tab=accounts');
 }
 
@@ -151,6 +155,8 @@ export async function deleteAccount(id: string, isChild: boolean = false) {
 
   revalidatePath('/accounts');
   revalidatePath('/wealth');
+  revalidatePath('/transactions');
+  revalidateTag('accounts');
   
   if (!isChild) {
     redirect('/wealth?tab=accounts');
@@ -190,4 +196,6 @@ export async function createChildAccount(formData: FormData) {
 
   revalidatePath('/accounts');
   revalidatePath('/wealth');
+  revalidatePath('/transactions');
+  revalidateTag('accounts');
 }

@@ -16,6 +16,7 @@ import {
 import { ExportMenuItem } from "@/components/export-menu-item";
 import { TransactionPageWrapper } from "@/components/transaction-page-wrapper";
 import { TransactionPageHeader } from "@/components/transaction-page-header";
+import { getCachedCategories, getCachedAccounts } from "@/lib/cache";
 
 export default async function TransactionsPage({
   searchParams,
@@ -95,7 +96,7 @@ export default async function TransactionsPage({
     where.date = { ...dateFilter, lte: end };
   }
 
-  // 4. Fetch Transactions with Pagination (并行查询)
+  // 4. Fetch Transactions with Pagination (并行查询，使用缓存的分类和账户)
   const [transactions, totalCount, categories, accounts] = await Promise.all([
     prisma.transaction.findMany({
       where,
@@ -118,12 +119,8 @@ export default async function TransactionsPage({
       take: pageSize,
     }),
     prisma.transaction.count({ where }),
-    prisma.category.findMany({
-      select: { id: true, name: true, type: true }
-    }),
-    prisma.account.findMany({
-      select: { id: true, name: true }
-    }),
+    getCachedCategories(),
+    getCachedAccounts(),
   ]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
