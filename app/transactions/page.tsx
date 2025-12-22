@@ -18,6 +18,8 @@ import { TransactionPageWrapper } from "@/components/transaction-page-wrapper";
 import { TransactionPageHeader } from "@/components/transaction-page-header";
 import { getCachedCategories, getCachedAccounts } from "@/lib/cache";
 
+export const dynamic = 'force-dynamic';
+
 export default async function TransactionsPage({
   searchParams,
 }: {
@@ -49,7 +51,7 @@ export default async function TransactionsPage({
   const { search, type, categoryId, accountId, startDate, endDate, view } = params;
   
   const page = Number(params.page) || 1;
-  const pageSize = Number(params.pageSize) || 50;
+  const pageSize = Number(params.pageSize) || 20;
   const skip = (page - 1) * pageSize;
 
   // 月度统计数据改为客户端按需加载
