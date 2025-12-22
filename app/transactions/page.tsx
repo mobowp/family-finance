@@ -104,7 +104,15 @@ export default async function TransactionsPage({
         { date: 'desc' },
         { createdAt: 'desc' }
       ],
-      include: {
+      select: {
+        id: true,
+        amount: true,
+        type: true,
+        date: true,
+        description: true,
+        categoryId: true,
+        accountId: true,
+        userId: true,
         category: {
           select: { id: true, name: true, type: true }
         },

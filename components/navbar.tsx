@@ -70,6 +70,7 @@ export function Navbar() {
                 <Link
                   key={route.href}
                   href={route.href}
+                  prefetch={true}
                   className={cn(
                     "relative flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base font-medium rounded-full transition-all duration-300 whitespace-nowrap",
                     route.active 
@@ -103,6 +104,7 @@ export function Navbar() {
                 <Link
                   key={route.href}
                   href={route.href}
+                  prefetch={true}
                   className={cn(
                     "flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-medium transition-all duration-300",
                     route.active 
