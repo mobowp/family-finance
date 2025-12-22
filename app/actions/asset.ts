@@ -207,7 +207,36 @@ export async function updateAsset(id: string, formData: FormData) {
     throw new Error('User not found');
   }
 
+  // 获取家庭 ID
+  const familyId = (user as any).familyId || user.id;
+
   try {
+    // 先检查资产是否存在并验证权限
+    const existingAsset = await prisma.asset.findUnique({
+      where: { id },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            familyId: true
+          }
+        }
+      }
+    });
+
+    if (!existingAsset) {
+      throw new Error('Asset not found');
+    }
+
+    // 检查是否有权限更新（资产属于当前用户或同一家庭，或者是管理员）
+    if (user.role !== 'ADMIN') {
+      const assetFamilyId = existingAsset.user.familyId || existingAsset.user.id;
+      if (assetFamilyId !== familyId) {
+        throw new Error('Unauthorized to update this asset');
+      }
+    }
+
     const data: any = {
       name,
       type,
@@ -233,18 +262,14 @@ export async function updateAsset(id: string, formData: FormData) {
         console.warn(`Failed to fetch price for ${symbol}`, e);
       }
     }
+ 
 
     if (user.role === 'ADMIN' && userId) {
       data.userId = userId;
     }
 
-    const whereClause: any = { id };
-    if (user.role !== 'ADMIN') {
-      whereClause.userId = user.id;
-    }
-
     await prisma.asset.update({
-      where: whereClause,
+      where: { id },
       data,
     });
     console.log('Asset updated successfully');
@@ -265,18 +290,31 @@ export async function deleteAsset(id: string) {
     throw new Error('User not found');
   }
 
+  // 获取家庭 ID
+  const familyId = (user as any).familyId || user.id;
+
   try {
-    // 先检查资产是否存在且属于当前用户
+    // 先检查资产是否存在
     const asset = await prisma.asset.findUnique({
       where: { id },
-      select: { userId: true }
+      select: { 
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            familyId: true
+          }
+        }
+      }
     });
 
     if (!asset) {
       throw new Error('Asset not found');
     }
 
-    if (asset.userId !== user.id) {
+    // 检查是否有权限删除（资产属于当前用户或同一家庭）
+    const assetFamilyId = asset.user.familyId || asset.user.id;
+    if (assetFamilyId !== familyId) {
       throw new Error('Unauthorized to delete this asset');
     }
 
