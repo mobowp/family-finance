@@ -23,8 +23,15 @@ export default async function EditAccountPage({ params }: { params: { id: string
   const isAdmin = currentUser?.role === 'ADMIN';
   
   let users: { id: string; name: string | null; email: string }[] = [];
-  if (isAdmin) {
+  if (isAdmin && currentUser) {
+    const familyId = (currentUser as any).familyId || currentUser.id;
     users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { id: familyId },
+          { familyId: familyId }
+        ]
+      },
       select: { id: true, name: true, email: true }
     });
   }

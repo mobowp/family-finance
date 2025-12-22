@@ -28,6 +28,20 @@ export default async function CreateAccountPage({
     } 
   });
 
+  const isAdmin = user.role === 'ADMIN';
+  let users: { id: string; name: string | null; email: string }[] = [];
+  if (isAdmin) {
+    users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { id: familyId },
+          { familyId: familyId }
+        ]
+      },
+      select: { id: true, name: true, email: true }
+    });
+  }
+
   const parentId = typeof searchParams.parentId === 'string' ? searchParams.parentId : undefined;
 
   return (
@@ -36,10 +50,11 @@ export default async function CreateAccountPage({
         <CardHeader>
           <CardTitle>添加账户</CardTitle>
         </CardHeader>
-        <CardContent>
+      <CardContent>
           <AccountForm 
             action={createAccount} 
             parentAccounts={accounts} 
+            users={users}
             defaultValues={parentId ? { parentId } as any : undefined}
           />
         </CardContent>
