@@ -145,8 +145,10 @@ export function TransactionList({
                     <td className="p-6">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                          {/* @ts-ignore */}
-                          <AvatarImage src={tx.user?.image || ""} />
+                          <AvatarImage 
+                            src={tx.user?.image || undefined} 
+                            alt={tx.user?.name || '用户头像'}
+                          />
                           <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
                               {tx.user?.name?.[0]?.toUpperCase() || 'U'}
                           </AvatarFallback>

@@ -523,7 +523,7 @@ export function ApiSettings() {
             <Label>AI 助手头像</Label>
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-primary">
-                <AvatarImage src={settings.ai_avatar || undefined} />
+                <AvatarImage src={settings.ai_avatar || undefined} alt="AI 助手头像" />
                 <AvatarFallback>
                   <Bot className="h-8 w-8" />
                 </AvatarFallback>

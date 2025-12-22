@@ -152,7 +152,7 @@ export function AccountForm({ action, parentAccounts = [], users = [], defaultVa
                     onClick={() => setSelectedIcon(icon)}
                 >
                     <Avatar className="h-10 w-10">
-                        <AvatarImage src={icon} />
+                        <AvatarImage src={icon} alt="账户图标" />
                         <AvatarFallback>icon</AvatarFallback>
                     </Avatar>
                 </div>

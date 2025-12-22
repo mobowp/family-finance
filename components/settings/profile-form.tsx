@@ -92,7 +92,7 @@ export function ProfileForm({ user }: { user: any }) {
         <input type="hidden" name="image" value={selectedAvatar} />
         <div className="flex flex-col items-center gap-4">
            <Avatar className="h-24 w-24 border-2 border-primary">
-              <AvatarImage src={selectedAvatar} />
+              <AvatarImage src={selectedAvatar || undefined} alt="选中的头像" />
               <AvatarFallback>{user.name?.[0]}</AvatarFallback>
            </Avatar>
            
@@ -131,7 +131,7 @@ export function ProfileForm({ user }: { user: any }) {
                         onClick={() => setSelectedAvatar(avatar)}
                     >
                         <Avatar className="h-10 w-10">
-                            <AvatarImage src={avatar} />
+                            <AvatarImage src={avatar} alt="头像选项" />
                             <AvatarFallback>icon</AvatarFallback>
                         </Avatar>
                     </div>

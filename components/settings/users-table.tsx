@@ -59,7 +59,7 @@ export function UsersTable({ users, currentUserEmail }: UsersTableProps) {
               <TableRow key={user.id}>
                 <TableCell className="flex items-center gap-3">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.image || ""} alt={user.name || ""} />
+                    <AvatarImage src={user.image || undefined} alt={user.name || '用户头像'} />
                     <AvatarFallback>
                       {user.name?.[0]?.toUpperCase() || <UserIcon className="h-4 w-4" />}
                     </AvatarFallback>
@@ -130,7 +130,7 @@ export function UsersTable({ users, currentUserEmail }: UsersTableProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <AvatarImage src={user.image || ""} />
+                  <AvatarImage src={user.image || undefined} alt={user.name || '用户头像'} />
                   <AvatarFallback>
                     {user.name?.[0]?.toUpperCase() || <UserIcon className="h-4 w-4" />}
                   </AvatarFallback>

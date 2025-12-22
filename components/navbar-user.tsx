@@ -53,7 +53,11 @@ export function NavbarUser() {
                 </span>
             </div>
             <Avatar className="h-9 w-9 border transition-all group-hover:ring-2 group-hover:ring-primary/20">
-                <AvatarImage src={user.image || ""} />
+                <AvatarImage 
+                  src={user.image || undefined} 
+                  alt={user.name || '用户头像'}
+                  priority
+                />
                 <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
                     {user.name?.[0]?.toUpperCase() || <Users className="h-4 w-4" />}
                 </AvatarFallback>
