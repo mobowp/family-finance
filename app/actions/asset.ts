@@ -266,14 +266,29 @@ export async function deleteAsset(id: string) {
   }
 
   try {
+    // 先检查资产是否存在且属于当前用户
+    const asset = await prisma.asset.findUnique({
+      where: { id },
+      select: { userId: true }
+    });
+
+    if (!asset) {
+      throw new Error('Asset not found');
+    }
+
+    if (asset.userId !== user.id) {
+      throw new Error('Unauthorized to delete this asset');
+    }
+
+    // 删除资产
     await prisma.asset.delete({
-      where: { 
-        id,
-        userId: user.id 
-      },
+      where: { id },
     });
   } catch (error) {
     console.error('Failed to delete asset:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to delete asset');
   }
 
