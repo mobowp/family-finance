@@ -103,6 +103,12 @@ model Transaction {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([userId, date(sort: Desc)])
+  @@index([date])
+  @@index([type])
+  @@index([categoryId])
+  @@index([accountId])
 }
 
 model AssetType {
