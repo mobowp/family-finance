@@ -6,7 +6,7 @@ import { Prisma } from "@prisma/client";
 import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { StatisticsDashboard } from "@/components/statistics/statistics-dashboard";
+import { StatisticsTabContent } from "@/components/statistics-tab-content";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -167,83 +167,7 @@ export default async function TransactionsPage({
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  // 5. Fetch Statistics Data (for Dashboard) - 只在需要时加载
-  let monthlyStats: any[] = [];
-  let categoryStats: any[] = [];
-
-  if (view === 'statistics') {
-    const oneYearAgo = new Date();
-    oneYearAgo.setMonth(oneYearAgo.getMonth() - 11);
-    oneYearAgo.setDate(1);
-    oneYearAgo.setHours(0, 0, 0, 0);
-
-    const statsTransactions = await prisma.transaction.findMany({
-      where: {
-        date: { gte: oneYearAgo },
-        user: userFilter
-      },
-      select: {
-        id: true,
-        amount: true,
-        type: true,
-        date: true,
-        categoryId: true,
-        userId: true,
-        category: {
-          select: { id: true, name: true }
-        },
-        user: {
-          select: { id: true, name: true, email: true }
-        }
-      },
-      orderBy: { date: 'asc' }
-    });
-
-    const monthlyMap = new Map<string, { income: number; expense: number }>();
-    const categoryMap = new Map<string, number>();
-
-    statsTransactions.forEach(tx => {
-      const date = new Date(tx.date);
-      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      
-      if (!monthlyMap.has(monthStr)) {
-        monthlyMap.set(monthStr, { income: 0, expense: 0 });
-      }
-      const monthData = monthlyMap.get(monthStr)!;
-      if (tx.type === 'INCOME') {
-        monthData.income += tx.amount;
-      } else if (tx.type === 'EXPENSE') {
-        monthData.expense += tx.amount;
-      }
-
-      if (tx.categoryId && tx.category) {
-        const userName = tx.user?.name || tx.user?.email || 'Unknown';
-        const key = `${monthStr}|${tx.categoryId}|${tx.category.name}|${tx.type}|${tx.userId}|${userName}`;
-        const currentAmount = categoryMap.get(key) || 0;
-        categoryMap.set(key, currentAmount + tx.amount);
-      }
-    });
-
-    monthlyStats = Array.from(monthlyMap.entries()).map(([month, data]) => ({
-      month,
-      income: data.income,
-      expense: data.expense,
-      net: data.income - data.expense
-    })).sort((a, b) => a.month.localeCompare(b.month));
-
-    categoryStats = Array.from(categoryMap.entries()).map(([key, amount]) => {
-      const [month, categoryId, categoryName, type, userId, userName] = key.split('|');
-      return {
-        month,
-        categoryId,
-        categoryName,
-        type,
-        userId,
-        userName,
-        amount
-      };
-    });
-  }
+  // 统计数据改为客户端按需加载
 
   return (
     <div className="max-w-7xl mx-auto p-8 space-y-8">
@@ -302,10 +226,7 @@ export default async function TransactionsPage({
         </TabsContent>
 
         <TabsContent value="statistics">
-          <StatisticsDashboard 
-            monthlyStats={monthlyStats} 
-            categoryStats={categoryStats} 
-          />
+          <StatisticsTabContent />
         </TabsContent>
       </Tabs>
     </div>
