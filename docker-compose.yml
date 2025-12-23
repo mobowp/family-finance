@@ -15,7 +15,7 @@ services:
       # You should generate a random string for this
       - AUTH_SECRET=change_me_to_a_secure_random_string
       # The public URL of your application (change to your domain or IP)
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - AUTH_TRUST_HOST=true
     volumes:
       # Persist the database file
